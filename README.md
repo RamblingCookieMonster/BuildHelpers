@@ -36,7 +36,7 @@ More to come.  Pull requests and other contributions would be welcome!
 Get-BuildVariables
 
 # We assume you're in the project root. If not, specify a path:
-Get-BuildVariabled -Path C:\MyProjectRoot
+Get-BuildVariables -Path C:\MyProjectRoot
 ```
 
 ### Get Project Name
