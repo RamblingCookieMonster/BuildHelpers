@@ -17,6 +17,9 @@ More to come.  Pull requests and other contributions would be welcome!
     # Unblock the zip
     # Extract the BuildHelpers folder to a module path (e.g. $env:USERPROFILE\Documents\WindowsPowerShell\Modules\)
 
+    #Simple alternative, if you have PowerShell 5, or the PowerShellGet module:
+        Install-Module BuildHelpers
+
 # Import the module.
     Import-Module BuildHelpers    #Alternatively, Import-Module \\Path\To\BuildHelpers
 

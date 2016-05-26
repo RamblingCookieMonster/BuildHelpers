@@ -5,8 +5,6 @@ SHORT DESCRIPTION
     This is a quick and dirty PowerShell module with a variety of helper functions for PowerShell CI/CD scenarios.
 
 LONG DESCRIPTION
-    This is a quick and dirty PowerShell module with a variety of helper functions for PowerShell CI/CD scenarios.
-
     Many of our build scripts explicitly reference build-system-specific features. We might rely on $ENV:APPVEYOR_REPO_BRANCH to know which branch we're in, for example.
 
     This certainly works, but we can enable more portable build scripts by bundling up helper functions, normalizing build variables, and avoiding build-system-specific features.
@@ -14,8 +12,12 @@ LONG DESCRIPTION
     This module provides a simple foundation for this, and can be used to abstract this out, leaving you with build scripts that are both more portable, and more readable.
 
 DETAILED DESCRIPTION
-
     There are a few functions:
         Get-BuildVariables:   This looks at your current environment variables, and returns details on what build system you're using, the git branch, commit message, and more.
         Get-ProjectName:      This looks at the current path, and tries to guess your project / module name based on common conventions.
-        Set-BuildEnvironment: This calls other BuildHelper functions, and sets environment variables that you can use in your scripts
+        Set-BuildEnvironment: This calls other BuildHelper functions, and sets environment variables that you can use in your scripts.
+
+    In a build environment, you might...
+        * Install BuildHelper
+        * Pre-populate normalized variables by running Set-BuildEnvironment
+        * Rely on ENV:BH* variables as needed

@@ -39,7 +39,7 @@ Task Init {
     Get-Item ENV:BH*
 }
 
-Task Test  {
+Task Test -Depends Init  {
     $lines
     "`n`tSTATUS: Testing with PowerShell $PSVersion"
 
