@@ -75,7 +75,7 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
     $CommitMessage = switch ($Environment.Name)
     {
         'APPVEYOR_REPO_COMMIT_MESSAGE' {
-            "$env:APPVEYOR_REPO_COMMIT_MESSAGE$env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED"
+            "$env:APPVEYOR_REPO_COMMIT_MESSAGE $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED"
             break
         }
         'CI_BUILD_REF' {
