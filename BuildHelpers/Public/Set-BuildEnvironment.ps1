@@ -25,6 +25,18 @@ function Set-BuildEnvironment {
         Set-BuildEnvironment
 
         Get-Item ENV:BH*
+
+    .LINK
+        https://github.com/RamblingCookieMonster/BuildHelpers
+
+    .LINK
+        Get-BuildVariables
+
+    .LINK
+        Get-ProjectName
+
+    .LINK
+        about_BuildHelpers
     #>
     [cmdletbinding()]
     param(

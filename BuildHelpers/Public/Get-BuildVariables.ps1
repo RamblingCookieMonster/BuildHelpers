@@ -32,6 +32,17 @@ function Get-BuildVariables {
     .EXAMPLE
         Get-BuildVariables
 
+    .LINK
+        https://github.com/RamblingCookieMonster/BuildHelpers
+
+    .LINK
+        Get-ProjectName
+
+    .LINK
+        Set-BuildEnvironment
+
+    .LINK
+        about_BuildHelpers
     #>
     [cmdletbinding()]
     param(

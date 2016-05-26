@@ -22,6 +22,18 @@ function Get-ProjectName {
 
     .EXAMPLE
         Get-ProjectName
+
+    .LINK
+        https://github.com/RamblingCookieMonster/BuildHelpers
+
+    .LINK
+        Get-BuildVariables
+
+    .LINK
+        Set-BuildEnvironment
+
+    .LINK
+        about_BuildHelpers
     #>
     [cmdletbinding()]
     param(
