@@ -1,13 +1,13 @@
 BuildHelpers
 ==============
 
-This is a PowerShell module with a variety of helper functions for PowerShell CI/CD scenarios.
+This is a quick and dirty PowerShell module with a variety of helper functions for PowerShell CI/CD scenarios.
 
 Many of our build scripts explicitly reference build-system-specific features.  We might rely on `$ENV:APPVEYOR_REPO_BRANCH` to know which branch we're in, for example.
 
 This certainly works, but we can enable more portable build scripts by bundling up helper functions, normalizing build variables, and avoiding build-system-specific features.
 
-Pull requests and other contributions would be welcome!
+More to come.  Pull requests and other contributions would be welcome!
 
 # Instructions
 
@@ -52,18 +52,18 @@ This checks the following expected organizations, in order:
 * ProjectX (Repo root)
   * ProjectX (Project here)
 
-Produces: ProjectX
+*Produces*: ProjectX
 
 * ProjectX (Repo root)
   * DifferentName (Project here. tsk tsk)
     * DifferentName.psd1
 
-Produces: DifferentName
+*Produces*: DifferentName
 
 * ProjectX (Repo root)
   * ProjectX.psd1 (Please don't use this organization...)
 
-Produces: ProjectX
+*Produces*: ProjectX
 
 ### Create Normalized Environment Variables
 

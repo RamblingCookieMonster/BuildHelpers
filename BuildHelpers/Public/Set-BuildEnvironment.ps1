@@ -34,8 +34,9 @@ function Set-BuildEnvironment {
     $BuildVars = Get-BuildVariables
     $ProjectName = Get-ProjectName -Path $Path
 
+    $ENV:BHBuildSystem = $BuildVars.BuildSystem
     $ENV:BHProjectPath = $BuildVars.ProjectPath
-    $ENV:BHBranchName = $BuildVars.BHBranchName
+    $ENV:BHBranchName = $BuildVars.BranchName
     $ENV:BHCommitMessage = $BuildVars.CommitMessage
     $ENV:BHProjectName = $ProjectName
 

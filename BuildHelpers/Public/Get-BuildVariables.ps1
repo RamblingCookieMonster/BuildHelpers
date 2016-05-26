@@ -74,15 +74,18 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
 # Find the git commit message
     $CommitMessage = switch ($Environment.Name)
     {
-        'APPVEYOR_REPO_COMMIT_MESSAGE' { "$env:APPVEYOR_REPO_COMMIT_MESSAGE$env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED"; break }
-        'CI_BUILD_REF'                 {
+        'APPVEYOR_REPO_COMMIT_MESSAGE' {
+            "$env:APPVEYOR_REPO_COMMIT_MESSAGE$env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED"
+            break
+        }
+        'CI_BUILD_REF' {
                 if($IsGitRepo)
                 {
                     git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
                     break
                 } # Gitlab - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'GIT_COMMIT'                   {
+        'GIT_COMMIT' {
                 if($IsGitRepo)
                 {
                     git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
@@ -98,7 +101,20 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
         }
     }
 
+# Determine the build system:
+    $BuildSystem = switch ($Environment.Name)
+    {
+        'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
+        'GITLAB_CI'             { 'GitLab CI' ; break }
+        'JENKINS_URL'           { 'Jenkins'; break }
+    }
+    if(-not $BuildSystem)
+    {
+        $BuildSystem = 'Unknown'
+    }
+
     [pscustomobject]@{
+        BuildSystem = $BuildSystem
         ProjectPath = $BuildRoot
         BranchName = $BuildBranch
         CommitMessage = $CommitMessage
