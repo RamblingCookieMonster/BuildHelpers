@@ -9,7 +9,7 @@ This certainly works, but we can enable more portable build scripts by bundling 
 
 More to come.  Pull requests and other contributions would be welcome!
 
-# Instructions
+## Instructions
 
 ```powershell
 # One time setup
@@ -28,10 +28,10 @@ More to come.  Pull requests and other contributions would be welcome!
 
 # Get help
     Get-Help Get-BuildVariables -Full
-    Get-Help about_BuildVariables
+    Get-Help about_BuildHelpers
 ```
 
-# Examples
+## Examples
 
 ### Get Normalized Build Variables
 
@@ -79,3 +79,7 @@ Set-BuildEnvironment
 # Read back the env vars
 Get-Item ENV:BH*
 ```
+
+Here's an example, having run Set-BuildEnvironment in an AppVeyor project:
+
+[![AppVeyor Example](/Media/AppVeyor.png)](https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers/build/1.0.4)
