@@ -10,12 +10,7 @@
 # Init some things
 Properties {
     # Find the build folder based on build system
-        $ProjectRoot = switch ((Get-ChildItem ENV:).Name)
-        {
-            'APPVEYOR_BUILD_FOLDER' { (Get-Item -Path "ENV:$_").Value;; break }
-            'CI_PROJECT_DIR'        { (Get-Item -Path "ENV:$_").Value; break }
-            'WORKSPACE'             { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
-        }
+        $ProjectRoot = $ENV:BHProjectPath
         if(-not $ProjectRoot)
         {
             $ProjectRoot = $PSScriptRoot
@@ -29,7 +24,7 @@ Properties {
     # Verbose output for non-master builds on appveyor
     # Handy for troubleshooting. Splat @Verbose against commands as needed
     $Verbose = @{}
-    if($env:APPVEYOR_REPO_BRANCH -and $env:APPVEYOR_REPO_BRANCH -notlike "master")
+    if($ENV:BHBranchName -notlike "master")
     {
         $Verbose.add("Verbose",$True)
     }
@@ -40,22 +35,19 @@ Task Default -Depends Deploy
 Task Init {
     $lines
     Set-Location $ProjectRoot
+    "Build System Details:"
+    Get-Item ENV:BH*
 }
 
-Task Clean {
-    $lines
-    Remove-Item "$ProjectRoot\Destination\" -ErrorAction SilentlyContinue -Force -Recurse
-}
-
-Task Test -Depends Clean {
+Task Test  {
     $lines
     "`n`tSTATUS: Testing with PowerShell $PSVersion"
 
     # Gather test results. Store them in a variable and file
     $TestResults = Invoke-Pester @verbose -Path $ProjectRoot\Tests -PassThru -OutputFormat NUnitXml -OutputFile "$ProjectRoot\$TestFile"
 
-    # In Appveyor?  Upload our tests!
-    If($env:APPVEYOR_JOB_ID)
+    # In Appveyor?  Upload our tests! #Abstract this into a function....
+    If($ENV:BHBuildSystem -eq 'AppVeyor')
     {
         (New-Object 'System.Net.WebClient').UploadFile(
             "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)",
@@ -78,10 +70,10 @@ Task Deploy -Depends Test {
 
     # Gate on master branch, and !deploy keyword anywhere in the commit
     if(
-        $env:APPVEYOR_REPO_BRANCH -like "master" -and
+        $ENV:BHBranchName -like "master" -and
         (
-            $env:APPVEYOR_REPO_COMMIT_MESSAGE -match '!deploy' -or
-            $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED -match '!deploy'
+            $env:BHCommitMessage -match '!deploy' -or
+            $env:BHCommitMessage -match '!deploy'
         )
     )
     {

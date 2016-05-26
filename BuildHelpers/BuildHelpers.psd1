@@ -4,7 +4,7 @@
 RootModule = 'BuildHelpers.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.0.2'
 
 # ID used to uniquely identify this module
 GUID = 'ec079170-28b7-40b4-aaae-f8ebf76850ab'
@@ -58,7 +58,9 @@ PowerShellVersion = '3.0'
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = '*'
+FunctionsToExport = 'Get-BuildVariables',
+                    'Get-ProjectName',
+                    'Set-BuildEnvironment'
 
 # Cmdlets to export from this module
 CmdletsToExport = '*'

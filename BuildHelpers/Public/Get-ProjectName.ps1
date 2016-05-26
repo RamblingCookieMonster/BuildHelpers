@@ -18,13 +18,10 @@ function Get-ProjectName {
         Path to project root. Defaults to the current working path
 
     .NOTES
-        We assume the following:
-            Your repo name is the name of the project
-            You store a subfolder for your project in the repo
+        We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-        Get-ModuleName
-
+        Get-ProjectName
     #>
     [cmdletbinding()]
     param(

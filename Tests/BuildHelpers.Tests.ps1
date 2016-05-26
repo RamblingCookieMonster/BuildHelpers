@@ -1,11 +1,5 @@
-$Verbose = @{}
-if($env:APPVEYOR_REPO_BRANCH -and $env:APPVEYOR_REPO_BRANCH -notlike "master")
-{
-    $Verbose.add("Verbose",$True)
-}
-
 $PSVersion = $PSVersionTable.PSVersion.Major
-$ModuleName = 'BuildHelpers'
+$ModuleName = $ENV:BHProjectName
 
 Import-Module $PSScriptRoot\..\$ModuleName -Force
 
@@ -21,6 +15,5 @@ Describe "$ModuleName PS$PSVersion" {
             $Commands -contains 'Get-BuildVariables' | Should Be $True
         }
     }
-
 }
 
