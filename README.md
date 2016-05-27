@@ -85,3 +85,7 @@ Get-Item ENV:BH*
 Here's an example, having run Set-BuildEnvironment in an AppVeyor project:
 
 [![AppVeyor Example](/Media/AppVeyor.png)](https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers/build/1.0.4)
+
+## Notes
+
+Thanks to Joel Bennett for the ConvertTo-Metadata function that we use in Set-ModuleFunctions!
