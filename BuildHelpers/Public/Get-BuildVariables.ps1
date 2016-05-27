@@ -19,6 +19,7 @@ function Get-BuildVariables {
                 Jenkins
 
             Produces:
+                BuildSystem: Build system we're running under
                 ProjectPath: Project root for cloned repo
                 BranchName: git branch for this build
                 CommitMessage: git commit message for this build
