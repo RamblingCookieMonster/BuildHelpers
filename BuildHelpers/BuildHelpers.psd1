@@ -4,7 +4,7 @@
 RootModule = 'BuildHelpers.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.11'
+ModuleVersion = '0.0.12'
 
 # ID used to uniquely identify this module
 GUID = 'ec079170-28b7-40b4-aaae-f8ebf76850ab'

@@ -83,7 +83,7 @@ function Set-ModuleFunctions {
         $ModuleManifest.FunctionsToExport = $FunctionsToExport
         $PrivateData = ConvertTo-Metadata $ModuleManifest.PrivateData
         $ModuleManifest.PrivateData = 'Ze Private Data!1'
-        New-ModuleManifest @ModuleManifest -Path $ModulePSD1Path
+        New-ModuleManifest @ModuleManifest -Path $ModulePSD1Path -WarningAction SilentlyContinue
         $ManifestText = Get-Content $ModulePSD1Path -Raw
         $ManifestText = $ManifestText -replace "'Ze Private Data!1'", $PrivateData
         Out-File -FilePath $ModulePSD1Path -InputObject $ManifestText
