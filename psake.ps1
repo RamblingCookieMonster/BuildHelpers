@@ -53,7 +53,7 @@ Task Test -Depends Init  {
 
 Task Build -Depends Test {
     $lines
-    #Set-ModuleFunctions
+    Set-ModuleFunctions
 }
 
 Task Deploy -Depends Build {
