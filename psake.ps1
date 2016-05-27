@@ -48,9 +48,11 @@ Task Test -Depends Init  {
     {
         Write-Error "Failed '$($TestResults.FailedCount)' tests, build failed"
     }
+    "`n"
 }
 
 Task Build -Depends Test {
+    $lines
     Set-ModuleFunctions
 }
 
