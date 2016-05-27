@@ -21,3 +21,6 @@ DETAILED DESCRIPTION
         * Install BuildHelper
         * Pre-populate normalized variables by running Set-BuildEnvironment
         * Rely on ENV:BH* variables as needed
+
+LINK
+    https://github.com/RamblingCookieMonster/BuildHelpers
