@@ -68,11 +68,6 @@ function Add-MetadataConverter {
    }
 }
 
-$MetadataConverters = @{}
-
-if($Converters -is [Collections.IDictionary]) {
-   Add-MetadataConverter $Converters
-}
 <#
 Copyright (c) 2015 Joel Bennett
 
