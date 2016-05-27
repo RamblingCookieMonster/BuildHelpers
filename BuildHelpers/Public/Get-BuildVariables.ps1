@@ -23,6 +23,7 @@ function Get-BuildVariables {
                 ProjectPath: Project root for cloned repo
                 BranchName: git branch for this build
                 CommitMessage: git commit message for this build
+                BuildNumber: Build number provided by the CI system
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path
@@ -91,18 +92,18 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
             break
         }
         'CI_BUILD_REF' {
-                if($IsGitRepo)
-                {
-                    git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
-                    break
-                } # Gitlab - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
+            if($IsGitRepo)
+            {
+                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                break
+            } # Gitlab - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
         'GIT_COMMIT' {
-                if($IsGitRepo)
-                {
-                    git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
-                    break
-                } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
+            if($IsGitRepo)
+            {
+                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                break
+            } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
     }
     if(-not $CommitMessage)
@@ -125,10 +126,24 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
         $BuildSystem = 'Unknown'
     }
 
+# Build number
+    $BuildNumber = switch ($Environment.Name)
+    {
+        'APPVEYOR_BUILD_NUMBER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
+        'CI_BUILD_ID   '        { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
+        'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
+
+    }
+    if(-not $BuildNumber)
+    {
+        $BuildNumber = 0
+    }
+
     [pscustomobject]@{
         BuildSystem = $BuildSystem
         ProjectPath = $BuildRoot
         BranchName = $BuildBranch
         CommitMessage = $CommitMessage
+        BuildNumber = $BuildNumber
     }
 }

@@ -13,6 +13,7 @@ function Set-BuildEnvironment {
             $ENV:BHProjectPath   via Get-BuildVariables
             $ENV:BHBranchName    via Get-BuildVariables
             $ENV:BHCommitMessage via Get-BuildVariables
+            $ENV:BHBuildNumber   via Get-BuildVariables
             $ENV:BHProjectName   via Get-ProjectName
 
     .PARAMETER Path
@@ -50,6 +51,7 @@ function Set-BuildEnvironment {
     $ENV:BHProjectPath = $BuildVars.ProjectPath
     $ENV:BHBranchName = $BuildVars.BranchName
     $ENV:BHCommitMessage = $BuildVars.CommitMessage
+    $ENV:BHBuildNumber = $BuildVars.BuildNumber
     $ENV:BHProjectName = $ProjectName
 
 }

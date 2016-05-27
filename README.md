@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/joxudd6qrahtr802?svg=true)](https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers)
+
 BuildHelpers
 ==============
 
@@ -50,7 +52,7 @@ We occasionally need to reference the project or module name:
 Get-ProjectName
 ```
 
-This checks the following expected organizations, in order:
+This checks the following expected file system organizations, in order:
 
 * ProjectX (Repo root)
   * ProjectX (Project here)
