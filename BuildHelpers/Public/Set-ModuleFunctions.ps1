@@ -81,7 +81,7 @@ function Set-ModuleFunctions {
             Throw "Could not import module manifest from '$ModulePSD1Path'"
         }
         $ModuleManifest.FunctionsToExport = $FunctionsToExport
-        $PrivateData = ConvertTo-Metadata $ModuleManifest.PrivateData.PSData
+        $PrivateData = ConvertTo-Metadata $ModuleManifest.PrivateData
         $ModuleManifest.PrivateData = 'Ze Private Data!1'
         New-ModuleManifest @ModuleManifest -Path $ModulePSD1Path
         $ManifestText = Get-Content $ModulePSD1Path -Raw

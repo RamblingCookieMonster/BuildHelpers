@@ -48,6 +48,44 @@ function ConvertTo-Metadata {
       [Hashtable]$Converters = @{}
    )
    begin {
+        function Add-MetadataConverter {
+           [CmdletBinding()]
+           param(
+              # A hashtable of types to serializer scriptblocks, or function names to scriptblock definitions
+              [Parameter(Mandatory = $True)]
+              [hashtable]$Converters
+           )
+
+           if($Converters.Count) {
+              switch ($Converters.Keys.GetEnumerator()) {
+                 {$Converters.$_ -isnot [ScriptBlock]} {
+                    Write-Error "Ignoring $_ converter, value must be ScriptBlock"
+                    continue
+                 }
+
+                 {$_ -is [String]}
+                 {
+                    Write-Verbose "Adding function $_"
+                    Set-Content "function:script:$_" $Converters.$_
+                    # We need to store the given function name in MetadataConverters too
+                    $MetadataConverters.$_ = $Converters.$_
+                    continue
+                 }
+
+                 {$_ -is [Type]}
+                 {
+                    Write-Verbose "Adding serializer for $($_.FullName)"
+                    $MetadataConverters.$_ = $Converters.$_
+                    continue
+                 }
+
+                 default {
+                    Write-Error "Unsupported key type in Converters: $_ is $($_.GetType())"
+                 }
+              }
+           }
+        }
+
       $t = "  "
       $Script:OriginalMetadataConverters = $Script:MetadataConverters.Clone()
       Add-MetadataConverter $Converters
