@@ -50,7 +50,11 @@ Task Test -Depends Init  {
     }
 }
 
-Task Deploy -Depends Test {
+Task Build -Depends Test {
+    Set-ModuleFunctions
+}
+
+Task Deploy -Depends Build {
     $lines
 
     # Gate deployment
