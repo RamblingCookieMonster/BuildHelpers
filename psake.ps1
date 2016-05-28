@@ -18,7 +18,6 @@ Properties {
     {
         $Verbose = @{Verbose = $True}
     }
-
 }
 
 Task Default -Depends Deploy
