@@ -5,7 +5,7 @@ $ModuleName = $ENV:BHProjectName
 # Handy for troubleshooting.
 # Splat @Verbose against commands as needed (here or in pester tests)
     $Verbose = @{}
-    if($ENV:BHBranchName -notlike "master")
+    if($ENV:BHBranchName -notlike "master" -or $env:BHCommitMessage -match "!verbose")
     {
         $Verbose.add("Verbose",$True)
     }

@@ -13,6 +13,12 @@ Properties {
     $TestFile = "TestResults_PS$PSVersion`_$TimeStamp.xml"
     $lines = '----------------------------------------------------------------------'
 
+    $Verbose = @{}
+    if($ENV:BHCommitMessage -match "!verbose")
+    {
+        $Verbose = @{Verbose = $True}
+    }
+
 }
 
 Task Default -Depends Deploy
@@ -66,7 +72,12 @@ Task Deploy -Depends Build {
         $ENV:BHCommitMessage -match '!deploy'
     )
     {
-        Invoke-PSDeploy -Path $ProjectRoot -Force
+        $Params = @{
+            Path = $ProjectRoot
+            Force = $true
+        }
+        
+        Invoke-PSDeploy @Verbose @Params
     }
     else
     {
