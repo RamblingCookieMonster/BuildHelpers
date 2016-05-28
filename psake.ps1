@@ -58,7 +58,7 @@ Task Test -Depends Init  {
 
 Task Build -Depends Test {
     $lines
-    Set-ModuleFunctions
+    #Set-ModuleFunctions
 }
 
 Task Deploy -Depends Build {
@@ -75,7 +75,7 @@ Task Deploy -Depends Build {
             Path = $ProjectRoot
             Force = $true
         }
-        
+
         Invoke-PSDeploy @Verbose @Params
     }
     else
