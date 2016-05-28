@@ -15,11 +15,5 @@
             Write-Error -Message "Failed to import function $($import.fullname): $_"
         }
     }
-#For ConvertTo-Metadata and related functions
-    $MetadataConverters = @{}
-
-    if($Converters -is [Collections.IDictionary]) {
-       Add-MetadataConverter $Converters
-    }
 
 Export-ModuleMember -Function $Public.Basename
