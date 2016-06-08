@@ -255,6 +255,8 @@ Describe 'Step-ModuleVersion' {
             $newManifest.ProcessorArchitecture | Should Be $manifestParams.ProcessorArchitecture
             $newManifest.PrivateData["PSData"]["ProjectUri"] | Should Match $manifestParams.ProjectUri
         }
-    }    
-    
+        It 'Should fail!' {
+            1 | Should Be 2
+        }
+    }
 }
