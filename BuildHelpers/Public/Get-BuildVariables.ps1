@@ -64,7 +64,7 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
     if(-not $BuildRoot)
     {
         # Assumption: this function is defined in a file at the root of the build folder
-        $BuildRoot = $PWD.Path
+        $BuildRoot = $Path
     }
 
 # Find the git branch
