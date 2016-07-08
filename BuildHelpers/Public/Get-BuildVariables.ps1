@@ -57,9 +57,10 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
 # Find the build folder based on build system
     $BuildRoot = switch ($Environment.Name)
     {
-        'APPVEYOR_BUILD_FOLDER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_PROJECT_DIR'        { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
-        'WORKSPACE'             { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
+        'APPVEYOR_BUILD_FOLDER'         { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
+        'CI_PROJECT_DIR'                { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
+        'WORKSPACE'                     { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
+        'BUILD_REPOSITORY_LOCALPATH'    { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
     }
     if(-not $BuildRoot)
     {
@@ -70,9 +71,11 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
 # Find the git branch
     $BuildBranch = switch ($Environment.Name)
     {
-        'APPVEYOR_REPO_BRANCH'  { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_BUILD_REF_NAME'     { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
-        'GIT_BRANCH'            { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
+        'APPVEYOR_REPO_BRANCH'      { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
+        'CI_BUILD_REF_NAME'         { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
+        'GIT_BRANCH'                { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
+        'BUILD_SOURCEBRANCHNAME'    { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        
     }
     if(-not $BuildBranch)
     {
@@ -105,6 +108,13 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
+        'BUILD_SOURCEVERSION' {
+            if($IsGitRepo)
+            {
+                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                break
+            } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
+        }
     }
     if(-not $CommitMessage)
     {
@@ -120,6 +130,7 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
         'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
         'GITLAB_CI'             { 'GitLab CI' ; break }
         'JENKINS_URL'           { 'Jenkins'; break }
+        'BUILD_REPOSITORY_URI'  { 'VSTS'; break }
     }
     if(-not $BuildSystem)
     {
@@ -132,6 +143,7 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
         'APPVEYOR_BUILD_NUMBER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
         'CI_BUILD_ID   '        { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
+        'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
 
     }
     if(-not $BuildNumber)
