@@ -2,7 +2,7 @@
 Get-PackageProvider -Name NuGet -ForceBootstrap | Out-Null
 
 Install-Module Psake, PSDeploy, Pester, BuildHelpers -force
-Import-module Psake, PSDeploy, Pester, BuildHelpers
+Import-Module Psake, BuildHelpers
 
 Set-BuildEnvironment
 
