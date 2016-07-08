@@ -24,9 +24,9 @@ else {
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempFile, $env:temp)
     }
     Import-Module $modulePath -DisableNameChecking
-    $modulePath = Join-Path "$env:temp" "PSDeploy\PSDeploy.psm1"
+    $modulePath = Join-Path "$env:temp" "PSDeploy-master\PSDeploy\PSDeploy.psm1"
     if (-not(Test-Path $modulePath)) {
-        $tempFile = Join-Path $env:TEMP psake.zip;
+        $tempFile = Join-Path $env:TEMP psdeploy.zip;
         Invoke-WebRequest 'https://github.com/RamblingCookieMonster/PSDeploy/archive/master.zip' -OutFile $tempFile -usebasicparsing
         [System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempFile, $env:temp)
@@ -35,7 +35,7 @@ else {
 }
 
 
-Import-module BuildHelpers\BuildHelpers.psd1
+Import-module .\BuildHelpers\BuildHelpers.psm1
 
 Set-BuildEnvironment
 
