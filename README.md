@@ -54,21 +54,27 @@ Get-ProjectName
 
 This checks the following expected file system organizations, in order:
 
+*File structure*:
+
 * ProjectX (Repo root)
   * ProjectX (Project here)
 
-*Produces*: ProjectX
+*Output*: ProjectX
+
+*File structure*:
 
 * ProjectX (Repo root)
   * DifferentName (Project here. tsk tsk)
     * DifferentName.psd1
 
-*Produces*: DifferentName
+*Output*: DifferentName
+
+*File structure*:
 
 * ProjectX (Repo root)
   * ProjectX.psd1 (Please don't use this organization...)
 
-*Produces*: ProjectX
+*Output*: ProjectX
 
 ### Create Normalized Environment Variables
 
