@@ -9,18 +9,22 @@ if($PSVersionTable.PSVersion.Major -eq 5){
 else {
     $modulePath = Join-Path "$env:temp" "Pester-master\Pester.psm1"
     if (-not(Test-Path $modulePath)) {
-        $tempFile = Join-Path $env:TEMP pester.zip;Invoke-WebRequest 'https://github.com/pester/Pester/archive/master.zip' -OutFile $tempFile -usebasicparsing
+        $tempFile = Join-Path $env:TEMP pester.zip
+        Invoke-WebRequest 'https://github.com/pester/Pester/archive/master.zip' -OutFile $tempFile -usebasicparsing
         [System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempFile, $env:temp)
     }
     $modulePath = Join-Path "$env:temp" "PSake-master\Psake.psm1"
     if (-not(Test-Path $modulePath)) {
-        $tempFile = Join-Path $env:TEMP pester.zip;Invoke-WebRequest 'https://github.com/psake/psake/archive/master.zip' -OutFile $tempFile -usebasicparsing
+        $tempFile = Join-Path $env:TEMP psake.zip;
+        Invoke-WebRequest 'https://github.com/psake/psake/archive/master.zip' -OutFile $tempFile -usebasicparsing
         [System.Reflection.Assembly]::LoadWithPartialName('System.IO.Compression.FileSystem') | Out-Null
         [System.IO.Compression.ZipFile]::ExtractToDirectory($tempFile, $env:temp)
     }
 }
-Import-Module Psake, Pester, BuildHelpers
+Import-Module Psake, Pester
+
+Import-module BuildHelpers\BuildHelpers.psd1
 
 Set-BuildEnvironment
 
