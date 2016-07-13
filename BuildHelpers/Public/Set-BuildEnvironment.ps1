@@ -10,11 +10,12 @@ function Set-BuildEnvironment {
         Normalize build system and project details into environment variables
 
         Creates the following environment variables:
-            $ENV:BHProjectPath   via Get-BuildVariables
-            $ENV:BHBranchName    via Get-BuildVariables
-            $ENV:BHCommitMessage via Get-BuildVariables
-            $ENV:BHBuildNumber   via Get-BuildVariables
-            $ENV:BHProjectName   via Get-ProjectName
+            $ENV:BHProjectPath      via Get-BuildVariables
+            $ENV:BHBranchName       via Get-BuildVariables
+            $ENV:BHCommitMessage    via Get-BuildVariables
+            $ENV:BHBuildNumber      via Get-BuildVariables
+            $ENV:BHProjectName      via Get-ProjectName
+            $ENV:BHPSModuleManifest via Get-PSModuleManifest
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path
@@ -44,8 +45,9 @@ function Set-BuildEnvironment {
         $Path = $PWD.Path
     )
 
-    $BuildVars = Get-BuildVariables
+    $BuildVars = Get-BuildVariables -Path $Path
     $ProjectName = Get-ProjectName -Path $Path
+    $ManifestPath = Get-PSModuleManifest -Path $Path
 
     $ENV:BHBuildSystem = $BuildVars.BuildSystem
     $ENV:BHProjectPath = $BuildVars.ProjectPath
@@ -53,5 +55,6 @@ function Set-BuildEnvironment {
     $ENV:BHCommitMessage = $BuildVars.CommitMessage
     $ENV:BHBuildNumber = $BuildVars.BuildNumber
     $ENV:BHProjectName = $ProjectName
+    $ENV:BHPSModuleManifest = $ManifestPath
 
 }
