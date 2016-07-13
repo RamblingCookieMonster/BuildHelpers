@@ -92,6 +92,31 @@ Here's an example, having run Set-BuildEnvironment in an AppVeyor project:
 
 [![AppVeyor Example](/Media/AppVeyor.png)](https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers/build/1.0.4)
 
+### Update your FunctionsToExport
+
+During the module authoring process, updating FunctionsToExport can be tedious, so many folks leave this set to '*', missing out on module auto-loading and other benefits.
+
+To get the best of both worlds, use FunctionsToExport='*', and use Set-ModuleFunctions in your build before deployment:
+
+```powershell
+# Set your build environment (we use this to get psd1 path)
+Set-BuildEnvironment
+
+# Check current FunctionsToExport:
+Select-String -Path .\PSSlack\PSSlack.psd1 -Pattern FunctionsToExport
+
+    # PSSlack\PSSlack.psd1:61:FunctionsToExport = '*'
+
+# Update the psd1 with Set-ModuleFunctions:
+Set-ModuleFunctions
+
+# Check FunctionsToExport again:
+Select-String -Path .\PSSlack\PSSlack.psd1 -Pattern FunctionsToExport
+
+    # PSSlack\PSSlack.psd1:61:FunctionsToExport = @('Find-SlackMessage','Get-PSSlackConfig','Get-SlackChannel','Get-SlackHistory','Get-SlackUser','New-Sla
+ckField','New-SlackMessage','New-SlackMessageAttachment','Send-SlackApi','Send-SlackFile','Send-SlackMessage','Set-PSSlackConfig')
+```
+
 ## Notes
 
 Thanks to Joel Bennett for the ConvertTo-Metadata function that we use in Set-ModuleFunctions!

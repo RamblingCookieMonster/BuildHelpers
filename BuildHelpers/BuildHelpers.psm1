@@ -15,11 +15,11 @@
             Write-Error -Message "Failed to import function $($import.fullname): $_"
         }
     }
-#For ConvertTo-Metadata and related functions
-    $MetadataConverters = @{}
 
-    if($Converters -is [Collections.IDictionary]) {
-       Add-MetadataConverter $Converters
-    }
+# Load dependencies. TODO: Move to module dependency once the bug that
+# causes this is fixed: https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers/build/1.0.22
+# Thanks to Joel Bennett for this!
+    Import-Module $PSScriptRoot\Private\Modules\Configuration
 
 Export-ModuleMember -Function $Public.Basename
+Export-ModuleMember -Function Get-Metadata, Update-Metadata, Export-Metadata

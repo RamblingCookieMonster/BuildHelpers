@@ -9,20 +9,11 @@ function Set-ModuleFunctions {
     .DESCRIPTION
         EXPIRIMENTAL: Set FunctionsToExport in a module manifest
 
-        WARNING:
-            We...
-                Deserialize your PSD1 file
-                Update the FunctionsToExport
-                Re-serialize via New-ModuleManifest
-
-            Your comments will be lost in this, and there is a chance
-            that serialization may mangle or miss items.
-
     .PARAMETER Name
-        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName
+        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
 
     .NOTES
-        Major thanks to Joel Bennett for the code behind writing the new PrivateData
+        Major thanks to Joel Bennett for the code behind working with the psd1
             Source: https://github.com/PoshCode/Configuration
 
     .EXAMPLE
@@ -55,7 +46,8 @@ function Set-ModuleFunctions {
             Passthru = $True
             Name = $Name
         }
-
+        
+        #Consider moving this to a runspace or job to keep session clean
         $Module = ( Import-Module @params )
         if(-not $Module)
         {
@@ -75,17 +67,6 @@ function Set-ModuleFunctions {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        $ModuleManifest = Import-LocalizedData -BaseDirectory $Parent -FileName $File
-        If(-not $ModuleManifest)
-        {
-            Throw "Could not import module manifest from '$ModulePSD1Path'"
-        }
-        $ModuleManifest.FunctionsToExport = $FunctionsToExport
-        $PrivateData = ConvertTo-Metadata $ModuleManifest.PrivateData
-        $ModuleManifest.PrivateData = 'Ze Private Data!1'
-        New-ModuleManifest @ModuleManifest -Path $ModulePSD1Path -WarningAction SilentlyContinue
-        $ManifestText = Get-Content $ModulePSD1Path -Raw
-        $ManifestText = $ManifestText -replace "'Ze Private Data!1'", $PrivateData
-        Out-File -FilePath $ModulePSD1Path -InputObject $ManifestText
+        Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
     }
 }
