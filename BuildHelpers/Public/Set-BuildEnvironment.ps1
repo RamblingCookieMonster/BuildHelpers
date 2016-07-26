@@ -24,7 +24,7 @@ function Set-BuildEnvironment {
     .PARAMETER AsVariable
         If specified, set BH* PowerShell variables, rather than environment variables.
 
-        Defaults to global scope.  Use Scope parameter to change this be
+        Defaults to Script scope.  Use Scope parameter to change this be
 
     .PARAMETER Scope
         When using AsVariable:
@@ -33,7 +33,7 @@ function Set-BuildEnvironment {
         relative to the current scope (0 through the number of scopes, where 0 is the current scope and 1 is its 
         parent). "Local" is the default. For more information, see about_Scopes.
         
-        Defaults to global
+        Defaults to Script
 
     .NOTES
         We assume you are in the project root, for several of the fallback options
@@ -78,7 +78,7 @@ function Set-BuildEnvironment {
 
         [parameter(ParameterSetName = 'VAR')]
         [validatescript({
-            if ( -not ( 'Global', 'Local', 'Script', 'Current' -contains $_ -or $_ -as [int] ) )
+            if ( -not ( 'Global', 'Local', 'Script', 'Current' -contains $_ -or $_ -as [int] -or $_ -eq 0 ) )
             {
                 throw "'$_' is an invalid Scope. For more information, run Get-Help Set-BuildEnvironment -Parameter Scope"
             }
@@ -104,7 +104,7 @@ function Set-BuildEnvironment {
     }
     else #VAR
     {
-        $params = @{Scope = 'Global'}
+        $params = @{Scope = 'Script'}
         if($PSBoundParameters.ContainsKey($Scope))
         {
             $params['Scope'] = $Scope
