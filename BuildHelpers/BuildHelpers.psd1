@@ -4,13 +4,13 @@
 RootModule = 'BuildHelpers.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.19'
+ModuleVersion = '0.0.20'
 
 # ID used to uniquely identify this module
 GUID = 'ec079170-28b7-40b4-aaae-f8ebf76850ab'
 
 # Author of this module
-Author = 'Warren F.'
+Author = 'Warren Frame'
 
 # Company or vendor of this module
 #CompanyName = 'Unknown'
@@ -84,7 +84,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-         Tags = @('Continuous', 'Delivery', 'Deployment', 'Integration', 'DevOps')
+         Tags = @('Continuous', 'Delivery', 'Deployment', 'Integration', 'DevOps', 'Jenkins', 'GitLab', 'CI', 'VSTS', 'AppVeyor')
 
         # A URL to the license for this module.
          LicenseUri = 'https://github.com/RamblingCookieMonster/BuildHelpers/blob/master/LICENSE'
