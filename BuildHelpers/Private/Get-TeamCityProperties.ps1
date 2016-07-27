@@ -11,7 +11,7 @@
 
     Loads the TeamCity system build properties into a hashtable.
 
-    .PARAMETER tcPropertiesXML
+    .PARAMETER propertiesfile
     Path to properties xml file. Defaults to environent 
     variable TEAMCITY_BUILD_PROPERTIES_FILE. 
 
@@ -29,7 +29,7 @@
     #>
     [OutputType([hashtable])]
     param(
-        [string]$tcPropertiesXML = $env:TEAMCITY_BUILD_PROPERTIES_FILE + '.xml'
+        [string]$propertiesfile = $env:TEAMCITY_BUILD_PROPERTIES_FILE + '.xml'
     )
 
     if(![String]::IsNullOrEmpty($env:TEAMCITY_VERSION))
