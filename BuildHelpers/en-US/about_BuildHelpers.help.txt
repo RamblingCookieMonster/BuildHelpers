@@ -16,11 +16,12 @@ DETAILED DESCRIPTION
         Get-BuildVariables:   This looks at your current environment variables, and returns details on what build system you're using, the git branch, commit message, and more.
         Get-ProjectName:      This looks at the current path, and tries to guess your project / module name based on common conventions.
         Set-BuildEnvironment: This calls other BuildHelper functions, and sets environment variables that you can use in your scripts.
+        Set-BuildVariable:    This calls other BuildHelper functions, and sets PowerShell variables in the calling or specified scope.
 
     In a build environment, you might...
         * Install BuildHelper
-        * Pre-populate normalized variables by running Set-BuildEnvironment
-        * Rely on ENV:BH* variables as needed
+        * Pre-populate normalized variables by running Set-BuildEnvironment or Set-BuildVariable
+        * Rely on environment variables ENV:BH* or PowerShell variables BH* as needed
 
 LINK
     https://github.com/RamblingCookieMonster/BuildHelpers
