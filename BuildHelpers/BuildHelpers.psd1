@@ -67,7 +67,7 @@ CmdletsToExport = '*'
 VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport = '*'
+AliasesToExport = 'Set-BuildVariable'
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
