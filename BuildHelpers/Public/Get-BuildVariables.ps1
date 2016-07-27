@@ -17,6 +17,13 @@ function Get-BuildVariables {
                 AppVeyor
                 GitLab CI
                 Jenkins
+                Teamcity
+                VTFS
+
+            For Teamcity the VCS Checkout Mode needs to be to checkout files on agent. 
+            Since TeamCity 10.0, this is the default setting for the newly created build configurations.
+            
+            Git needs to be available on the agent for this.  
 
             Produces:
                 BuildSystem: Build system we're running under
@@ -54,6 +61,22 @@ function Get-BuildVariables {
 $Environment = Get-Item ENV:
 $IsGitRepo = Test-Path $( Join-Path $Path .git )
 
+$tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
+
+# Determine the build system:
+    $BuildSystem = switch ($Environment.Name)
+    {
+        'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
+        'GITLAB_CI'             { 'GitLab CI' ; break }
+        'JENKINS_URL'           { 'Jenkins'; break }
+        'BUILD_REPOSITORY_URI'  { 'VSTS'; break }
+        'TEAMCITY_VERSION'      { 'Teamcity' ; break }
+    }
+    if(-not $BuildSystem)
+    {
+        $BuildSystem = 'Unknown'
+    }
+
 # Find the build folder based on build system
     $BuildRoot = switch ($Environment.Name)
     {
@@ -64,8 +87,12 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
     }
     if(-not $BuildRoot)
     {
-        # Assumption: this function is defined in a file at the root of the build folder
-        $BuildRoot = $Path
+        if ($BuildSystem -eq 'Teamcity') {
+            $BuildRoot = $tcProperties['teamcity.build.checkoutDir']
+        } else {
+            # Assumption: this function is defined in a file at the root of the build folder
+            $BuildRoot = $Path
+        }
     }
 
 # Find the git branch
@@ -75,7 +102,6 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
         'CI_BUILD_REF_NAME'         { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
         'GIT_BRANCH'                { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
         'BUILD_SOURCEBRANCHNAME'    { (Get-Item -Path "ENV:$_").Value; break } # VSTS
-        
     }
     if(-not $BuildBranch)
     {
@@ -115,6 +141,13 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
                 break
             } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
         }
+        'BUILD_VCS_NUMBER' {
+            if($IsGitRepo)
+            {
+                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                break
+            } # Teamcity https://confluence.jetbrains.com/display/TCD10/Predefined+Build+Parameters
+        }        
     }
     if(-not $CommitMessage)
     {
@@ -124,25 +157,12 @@ $IsGitRepo = Test-Path $( Join-Path $Path .git )
         }
     }
 
-# Determine the build system:
-    $BuildSystem = switch ($Environment.Name)
-    {
-        'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
-        'GITLAB_CI'             { 'GitLab CI' ; break }
-        'JENKINS_URL'           { 'Jenkins'; break }
-        'BUILD_REPOSITORY_URI'  { 'VSTS'; break }
-    }
-    if(-not $BuildSystem)
-    {
-        $BuildSystem = 'Unknown'
-    }
-
 # Build number
     $BuildNumber = switch ($Environment.Name)
     {
         'APPVEYOR_BUILD_NUMBER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
         'CI_BUILD_ID   '        { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
-        'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
+        'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
         'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
 
     }
