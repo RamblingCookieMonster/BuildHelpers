@@ -77,21 +77,24 @@ function Step-ModuleVersion {
             $manifest.RequiredModules = $manifest.RequiredModules | ForEach-Object {$_}
             $manifest.ModuleList = $manifest.ModuleList | ForEach-Object {$_}
             
-            foreach ($node in $manifest.PrivateData["PSData"].GetEnumerator())
+            if ($manifest.ContainsKey("PrivateData") -and $manifest.PrivateData.ContainsKey("PSData"))
             {
-                $key = $node.Key
-                if ($node.Value.GetType().Name -eq "Object[]")
+                foreach ($node in $manifest.PrivateData["PSData"].GetEnumerator())
                 {
-                    $value = $node.Value | ForEach-Object {$_}
+                    $key = $node.Key
+                    if ($node.Value.GetType().Name -eq "Object[]")
+                    {
+                        $value = $node.Value | ForEach-Object {$_}
+                    }
+                    else 
+                    {
+                        $value = $node.Value    
+                    }
+                    
+                    $manifest[$key] = $value
                 }
-                else 
-                {
-                    $value = $node.Value    
-                }
-                
-                $manifest[$key] = $value
+                $manifest.Remove("PrivateData")
             }
-            $manifest.Remove("PrivateData")
             
             New-ModuleManifest -Path $file -ModuleVersion $newVersion @manifest
         }   
