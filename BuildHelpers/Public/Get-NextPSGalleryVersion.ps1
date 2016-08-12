@@ -11,7 +11,9 @@
 
         Uses the versioning scheme adopted by the user
 
-        Where possible, user's should stick to semver: http://semver.org/ (Major.Minor.Patch, given restrictions .NET Version class)
+        Where possible, users should stick to semver: http://semver.org/ (Major.Minor.Patch, given restrictions .NET Version class)
+
+        This requires the PowerShellGet module
 
     .PARAMETER Name
         Name of the PowerShell module or script
