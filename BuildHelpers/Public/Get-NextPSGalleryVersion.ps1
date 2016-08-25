@@ -14,6 +14,8 @@
         Where possible, users should stick to semver: http://semver.org/ (Major.Minor.Patch, given restrictions .NET Version class)
 
         This requires the PowerShellGet module
+        
+        If no existing module is found, we return 0.0.1
 
     .PARAMETER Name
         Name of the PowerShell module or script
@@ -62,7 +64,14 @@
             }
             Catch
             {
-                Write-Error $_
+                if($_ -match "No match was found for the specified search criteria")
+                {
+                    New-Object System.Version (0,0,1)
+                }
+                else
+                {
+                    Write-Error $_
+                }
                 continue
             }
 
@@ -73,7 +82,8 @@
             }
             elseif($Existing.count -eq 0)
             {
-                Write-Error "Found no $Type matching '$Item'"
+                Write-Verbose "Found no $Type matching '$Item'"
+                New-Object System.Version (0,0,1)
                 continue
             }
             else
