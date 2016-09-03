@@ -57,6 +57,9 @@ function Set-BuildEnvironment {
     $ENV:BHBuildNumber = $BuildVars.BuildNumber
     $ENV:BHProjectName = $ProjectName
     $ENV:BHPSModuleManifest = $ManifestPath
-    $ENV:BHPSModulePath = Split-Path -Path $ManifestPath -Parent -ErrorAction SilentlyContinue
+    if($ManifestPath)
+    {
+        $ENV:BHPSModulePath = Split-Path -Path $ManifestPath -Parent
+    }
 
 }
