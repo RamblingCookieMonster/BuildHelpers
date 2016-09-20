@@ -201,7 +201,6 @@ Describe 'Step-ModuleVersion' {
                             ProjectUri = "http://something.us"
                             Tags = @("one","two","three")
                             FunctionsToExport = @("Get-MyFunction","Set-MyFunction")
-                            NestedModules = @("Module1","Module2")
                             ProcessorArchitecture = "Amd64"
                             PowerShellVersion = "4.0"
                             RequiredModules = @("ModuleA","ModuleB")
@@ -229,12 +228,7 @@ Describe 'Step-ModuleVersion' {
         
         It 'Should have an properly formatted array for "Tags"' {
             'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain "Tags = 'one', 'two', 'three'" 
-        }        
-        
-        It 'Should have an properly formatted array for "NestedModules"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape('NestedModules = @(''Module1'',')) 
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape("               'Module2')"))
-        }           
+        }         
         
         It 'Should have an properly formatted array for "RequiredModules"' {
             'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape('RequiredModules = @(''ModuleA'',')) 
