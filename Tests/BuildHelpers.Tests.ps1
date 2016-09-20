@@ -32,19 +32,19 @@ Describe "Get-ProjectName PS$PSVersion" {
         Set-StrictMode -Version latest
 
         It 'Should pick by same name nested folder' {
-            $ProjectName = Get-ProjectName $PSScriptRoot\TestData\ProjectX
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectX
             $ProjectName | Should Be 'ProjectX'
         }
         It 'Should pick by PSD1 in folder' {
-            $ProjectName = Get-ProjectName $PSScriptRoot\TestData\ProjectPSD
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectPSD
             $ProjectName | Should Be 'ProjectPSD'
         }
         It 'Should pick by PSD1 in subfolder' {
-            $ProjectName = Get-ProjectName $PSScriptRoot\TestData\ProjectSubPSD
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectSubPSD
             $ProjectName | Should Be 'ProjectSubPSD'
         }
         It 'Should pick by PSD1 in subfolder with different name' {
-            $ProjectName = Get-ProjectName $PSScriptRoot\TestData\ProjectWTF
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectWTF
             $ProjectName | Should Be 'ProjectEvil'
         }
     }
@@ -53,34 +53,34 @@ Describe "Get-ProjectName PS$PSVersion" {
 Describe 'Step-Version' {
     Context 'By Param' {               
         It 'Should increment the Patch level' {
-            $result = Step-Version 1.1.1
+            $result = Step-Version @Verbose 1.1.1
             $result | Should Be 1.1.2
         }
         
         It 'Should increment the Minor level and set Patch level to 0' {
-            $result = Step-Version 1.1.1 Minor
+            $result = Step-Version @Verbose 1.1.1 Minor
             $result | Should Be 1.2.0
         }      
         
         It 'Should increment the Major level and set the Minor and Patch level to 0' {
-            $result = Step-Version 1.1.1 Major
+            $result = Step-Version @Verbose 1.1.1 Major
             $result | Should Be 2.0.0
         }        
     }
     
     Context 'By Pipeline' {
         It 'Should increment the Patch level' {
-            $result = [version]"1.1.1" | Step-Version
+            $result = [version]"1.1.1" | Step-Version @Verbose
             $result | Should Be 1.1.2
         }
         
         It 'Should increment the Minor level and set Patch level to 0' {
-            $result = $result = [version]"1.1.1" | Step-Version -By Minor
+            $result = $result = [version]"1.1.1" | Step-Version @Verbose -By Minor
             $result | Should Be 1.2.0
         }      
         
         It 'Should increment the Major level and set the Minor and Patch level to 0' {
-            $result = $result = [version]"1.1.1" | Step-Version -By Major
+            $result = $result = [version]"1.1.1" | Step-Version @Verbose -By Major
             $result | Should Be 2.0.0
         }           
     }
@@ -102,9 +102,9 @@ Describe 'Step-ModuleVersion' {
         
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
-        Step-ModuleVersion -Path TestDrive:\testmanifest\testmanifest.psd1
+        Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
 
-        $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1                
+        $newManifest = Import-PowerShellDataFile @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1                
         
         It 'Passes Test-ModuleManifest' {
             Test-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1
@@ -123,7 +123,7 @@ Describe 'Step-ModuleVersion' {
         }
         
         It 'Throws an error when passed a bad file' {
-            {Step-ModuleVersion -Path TestDrive:\notamanifest.txt} | Should Throw
+            {Step-ModuleVersion @Verbose -Path TestDrive:\notamanifest.txt} | Should Throw
         }
     }
     
@@ -145,7 +145,7 @@ Describe 'Step-ModuleVersion' {
         Set-Location -Path TestDrive:\testmanifest\           
                
         It 'Should be at version 1.1.2' {
-            Step-ModuleVersion
+            Step-ModuleVersion @Verbose
             $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1   
             $newManifest.ModuleVersion | Should Be 1.1.2
         }
@@ -168,7 +168,7 @@ Describe 'Step-ModuleVersion' {
         
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
-        Step-ModuleVersion -Path TestDrive:\testmanifest\testmanifest.psd1 -By Minor
+        Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1 -By Minor
 
         $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1                
         
@@ -210,7 +210,7 @@ Describe 'Step-ModuleVersion' {
         
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
-        Step-ModuleVersion -Path TestDrive:\testmanifest\testmanifest.psd1
+        Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
 
         $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
                         

@@ -27,6 +27,20 @@ Task Init {
     Set-Location $ProjectRoot
     "Build System Details:"
     Get-Item ENV:BH*
+    if($Verbose.Verbose)
+    {
+        "`nPSVersionTable:"
+        $PSVersionTable
+
+        "`nModule Paths"
+        $ENV:PSModulePath -split ';'
+
+        "`nModules Loaded:"
+        Get-Module | Select Name, Path
+
+        "`nModules Available:"
+        Get-Module -ListAvailable | Select Name, Path
+    }
     "`n"
 }
 
