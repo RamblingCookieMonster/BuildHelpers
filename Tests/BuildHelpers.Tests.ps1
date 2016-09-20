@@ -90,7 +90,6 @@ Describe 'Step-ModuleVersion' {
     Context 'Basic Manifest' {
         
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
-        New-Item -Path TestDrive:\ -Name notamanifest.txt -ItemType File
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
         
         $manifestParams = @{Guid = New-Guid
@@ -121,10 +120,6 @@ Describe 'Step-ModuleVersion' {
             $newManifest.RootModule | Should Be $manifestParams.RootModule
             $newManifest.Description | Should Be $manifestParams.Description            
         }
-        
-        It 'Throws an error when passed a bad file' {
-            {Step-ModuleVersion @Verbose -Path TestDrive:\notamanifest.txt} | Should Throw
-        }
     }
     
     Context 'Basic Manifest in PWD' {
@@ -152,7 +147,6 @@ Describe 'Step-ModuleVersion' {
 
         Pop-Location
     }    
-    
     
     Context 'Basic Manifest with Minor step' {
         
@@ -202,6 +196,7 @@ Describe 'Step-ModuleVersion' {
                             Tags = @("one","two","three")
                             FunctionsToExport = @("Get-MyFunction","Set-MyFunction")
                             ProcessorArchitecture = "Amd64"
+                            NestedModules = @("Module1","Module2")
                             PowerShellVersion = "4.0"
                             RequiredModules = @("ModuleA","ModuleB")
                             ModuleList = @("ModuleX","ModuleY")
@@ -212,11 +207,6 @@ Describe 'Step-ModuleVersion' {
         Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
 
         $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
-                        
-        It 'Passes Test-ModuleManifest' {
-            #Test-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1
-            $? | Should Be $true
-        }
         
         It 'Should be at version 1.1.2' {
             $newManifest.ModuleVersion | Should Be 1.1.2
@@ -229,7 +219,12 @@ Describe 'Step-ModuleVersion' {
         It 'Should have an properly formatted array for "Tags"' {
             'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain "Tags = 'one', 'two', 'three'" 
         }         
-        
+
+        It 'Should have an properly formatted array for "NestedModules"' {		
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape('NestedModules = @(''Module1'',')) 		
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape("               'Module2')"))		
+        }     
+
         It 'Should have an properly formatted array for "RequiredModules"' {
             'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape('RequiredModules = @(''ModuleA'',')) 
             'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape("               'ModuleB')"))

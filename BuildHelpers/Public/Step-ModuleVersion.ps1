@@ -38,7 +38,7 @@ function Step-ModuleVersion {
                    ValueFromPipelineByPropertyName=$true,
                    HelpMessage="Path to one or more locations.")]
         [Alias("PSPath")]
-        [ValidateScript({if (Test-ModuleManifest $_) {$true} else {$false} })]
+        [ValidateScript({ Test-Path $_ -PathType Leaf })]
         [string[]]
         $Path,
         
@@ -61,13 +61,7 @@ function Step-ModuleVersion {
     Process
     {
         foreach ($file in $Path)
-        {
-            if (-not (Test-ModuleManifest -Path $file))
-            {
-                Write-Error -Exception $Error[0].Exception
-                continue
-            }
-            
+        {            
             $manifest = Import-PowerShellDataFile -Path $file 
             $newVersion = Step-Version $manifest.ModuleVersion $By
             $manifest.Remove("ModuleVersion")
