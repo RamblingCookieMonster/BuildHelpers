@@ -246,3 +246,40 @@ Describe 'Step-ModuleVersion' {
         }
     }
 }
+
+Describe 'Get-GitChangedFile' {
+    Context 'This repository' {
+
+        It 'Should find at least one file from the last commit in this repo' {
+            $Output = Get-GitChangedFile
+            @($Output).count | Should BeGreaterThan 0
+            Test-Path @($Output)[0] | Should Be $true
+        }
+              
+        It 'Should find files changed in a specified commit in this repo' {
+            $Output = Get-GitChangedFile -Commit 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7 -ErrorAction SilentlyContinue -Include README*
+            @($Output).count | Should Be 1
+            @($Output)[0] | Should BeLike "*BuildHelpers\README.md"
+        }
+    }
+
+    Context 'Invalid repository' {
+        It "Should fail if we don't find a valid git repo" {
+            {Get-GitChangedFile C:\ -ErrorAction Stop} | Should Throw
+        }
+    }
+}
+
+Describe 'Invoke-Git' {
+    Context 'This repository' {
+        It 'Should find the root of the BuildHelpers repo' {
+            Invoke-Git rev-parse --show-toplevel -Path $PSScriptRoot | Should BeLike "*BuildHelpers"
+        }
+    }
+
+    Context 'Invalid repository' {
+        It "Should fail if we don't find a valid git repo" {
+            {Invoke-Git rev-parse --show-toplevel -Path C:\ -ErrorAction Stop} | Should Throw
+        }
+    }
+}
