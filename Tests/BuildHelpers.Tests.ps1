@@ -250,6 +250,7 @@ Describe 'Step-ModuleVersion' {
 Describe 'Get-GitChangedFile' {
     Context 'This repository' {
 
+        # TODO: Fix this.  Merge commits will fail this test.
         It 'Should find at least one file from the last commit in this repo' {
             $Output = Get-GitChangedFile
             @($Output).count | Should BeGreaterThan 0
