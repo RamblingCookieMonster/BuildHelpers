@@ -68,7 +68,11 @@ param(
         $true
     })]
     [string]
-    $Scope
+    $Scope,
+
+    [ValidatePattern('\w*')]
+    [String]
+    $VariableNamePrefix = 'BH'
 )
 
 if($MyInvocation.InvocationName -eq '.')
@@ -93,12 +97,16 @@ else
 ${Build.Vars} = Get-BuildVariables -Path $Path
 ${Build.ProjectName} = Get-ProjectName -Path $Path
 ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
-
-Set-Variable -Scope $Scope -Name BHBuildSystem -Value ${Build.Vars}.BuildSystem
-Set-Variable -Scope $Scope -Name BHProjectPath -Value ${Build.Vars}.ProjectPath
-Set-Variable -Scope $Scope -Name BHBranchName -Value ${Build.Vars}.BranchName
-Set-Variable -Scope $Scope -Name BHCommitMessage -Value ${Build.Vars}.CommitMessage
-Set-Variable -Scope $Scope -Name BHBuildNumber -Value ${Build.Vars}.BuildNumber
-Set-Variable -Scope $Scope -Name BHProjectName -Value ${Build.ProjectName}
-Set-Variable -Scope $Scope -Name BHPSModuleManifest -Value ${Build.ManifestPath}
-Set-Variable -Scope $Scope -Name BHPSModulePath -Value $(Split-Path -Path ${Build.ManifestPath} -Parent)
+$BuildHelpersVariables = @{
+    BuildSystem = ${Build.Vars}.BuildSystem
+    ProjectPath = ${Build.Vars}.ProjectPath
+    BranchName  = ${Build.Vars}.BranchName
+    CommitMessage = ${Build.Vars}.CommitMessage
+    BuildNumber = ${Build.Vars}.BuildNumber
+    ProjectName = ${Build.ProjectName}
+    PSModuleManifest = ${Build.ManifestPath}
+    PSModulePath = $(Split-Path -Path ${Build.ManifestPath} -Parent)
+}
+foreach ($VarName in $BuildHelpersVariables.Keys) {
+    Set-Variable -Scope $Scope -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName]
+}
