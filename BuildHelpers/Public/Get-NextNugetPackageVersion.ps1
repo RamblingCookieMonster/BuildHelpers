@@ -1,37 +1,33 @@
-﻿function Get-NextPSGalleryVersion {
+﻿function Get-NextNugetPackageVersion {
     <#
     .SYNOPSIS
-        DEPRECATED: Please use Get-NextNugetPackageVersion
-        
-        Get the next version for a module or script in the PowerShell Gallery
+        Get the next version for a nuget package, such as a module or script in the PowerShell Gallery
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        DEPRECATED: Please use Get-NextNugetPackageVersion
-
-        Get the next version for a module or script in the PowerShell Gallery
+        Get the next version for a nuget package, such as a module or script in the PowerShell Gallery
 
         Uses the versioning scheme adopted by the user
 
         Where possible, users should stick to semver: http://semver.org/ (Major.Minor.Patch, given restrictions .NET Version class)
-
-        This requires the PowerShellGet module
         
         If no existing module is found, we return 0.0.1
 
     .PARAMETER Name
-        Name of the PowerShell module or script
+        Name of the nuget package
 
-    .PARAMETER Type
-        Module or script.  Defaults to module.
+    .PARAMETER PackageSourceUrl
+        Nuget PackageSourceUrl to query.
+            PSGallery Module URL: https://www.powershellgallery.com/api/v2/ (default)
+            PSGallery Script URL: https://www.powershellgallery.com/api/v2/items/psscript/
 
     .EXAMPLE
-        Get-NextPSGalleryVersion PSDeploy
+        Get-NextNugetPackageVersion PSDeploy
 
     .EXAMPLE
-        Get-NextPSGalleryVersion Open-ISEFunction -Type Script
+        Get-NextNugetPackageVersion Open-ISEFunction -PackageSourceUrl https://www.powershellgallery.com/api/v2/items/psscript/
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -44,11 +40,7 @@
         [parameter(ValueFromPipelineByPropertyName=$True)]
         [string[]]$Name,
 
-        [parameter(ValueFromPipelineByPropertyName=$True)]
-        [ValidateSet('Module', 'Script')]
-        [string]$Type = 'Module',
-
-        [string]$Repository = 'PSGallery'
+        [string]$PackageSourceUrl = 'https://www.powershellgallery.com/api/v2/'
     )
     Process
     {
@@ -57,14 +49,7 @@
             Try
             {
                 $Existing = $null
-                if($Type -eq 'Module')
-                {
-                    $Existing = Find-Module -Name $Item -Repository $Repository -ErrorAction Stop
-                }
-                else # Script
-                {
-                    $Existing = Find-Script -Name $Item -Repository $Repository -ErrorAction Stop
-                }
+                $Existing = Find-NugetPackage -Name $Item -PackageSourceUrl $PackageSourceUrl -IsLatest -ErrorAction Stop
             }
             Catch
             {
@@ -92,7 +77,7 @@
             }
             else
             {
-                $Version = $Existing.Version
+                $Version = [System.Version]$Existing.Version
             }
 
             # using revision
