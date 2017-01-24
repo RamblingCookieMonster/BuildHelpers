@@ -18,8 +18,8 @@ Describe "$ModuleName PS$PSVersion" {
         Set-StrictMode -Version latest
 
         It 'Should load' {
-            $Module = Get-Module $ModuleName
-            $Module.Name | Should be $ModuleName
+            $Module = @( Get-Module $ModuleName )
+            $Module.Name -contains $ModuleName | Should be $True
             $Commands = $Module.ExportedCommands.Keys
             $Commands -contains 'Get-BuildVariables' | Should Be $True
         }
