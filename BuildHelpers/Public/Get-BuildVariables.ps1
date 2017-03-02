@@ -19,6 +19,7 @@ function Get-BuildVariables {
                 Jenkins
                 Teamcity
                 VTFS
+                Bamboo
 
             For Teamcity the VCS Checkout Mode needs to be to checkout files on agent. 
             Since TeamCity 10.0, this is the default setting for the newly created build configurations.
@@ -71,6 +72,7 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         'JENKINS_URL'           { 'Jenkins'; break }
         'BUILD_REPOSITORY_URI'  { 'VSTS'; break }
         'TEAMCITY_VERSION'      { 'Teamcity' ; break }
+        'BAMBOO_BUILDKEY'       { 'Bamboo'; break }
     }
     if(-not $BuildSystem)
     {
@@ -84,6 +86,7 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         'CI_PROJECT_DIR'                { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
         'WORKSPACE'                     { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
         'BUILD_REPOSITORY_LOCALPATH'    { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
+        'BAMBOO_BUILD_WORKING_DIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
     }
     if(-not $BuildRoot)
     {
@@ -102,6 +105,7 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         'CI_BUILD_REF_NAME'         { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
         'GIT_BRANCH'                { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
         'BUILD_SOURCEBRANCHNAME'    { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'BAMBOO_REPOSITORY_GIT_BRANCH' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
     }
     if(-not $BuildBranch)
     {
@@ -147,6 +151,14 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
                 git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
                 break
             } # Teamcity https://confluence.jetbrains.com/display/TCD10/Predefined+Build+Parameters
+        }
+        'BAMBOO_REPOSITORY_REVISION_NUMBER' {
+            if($IsGitRepo)
+            {
+                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                break
+            } # Bamboo https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
+            
         }        
     }
     if(-not $CommitMessage)
@@ -164,6 +176,7 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         'CI_BUILD_ID   '        { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
         'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'BAMBOO_BUILDNUMBER'    { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
 
     }
     if(-not $BuildNumber)
