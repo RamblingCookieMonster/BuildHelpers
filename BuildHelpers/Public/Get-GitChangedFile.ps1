@@ -23,6 +23,9 @@ function Get-GitChangedFile {
         If specified, exclude any files that are '-like'
         an item in the -Include
 
+    .PARAMETER Resolve
+        If specified, run Resolve-Path on the determined git path and file in question
+
     .EXAMPLE
         Get-GitChangedFile
         # Get files changed in the most recent commit
@@ -54,7 +57,9 @@ function Get-GitChangedFile {
 
         [string[]]$Include,
 
-        [string[]]$Exclude
+        [string[]]$Exclude,
+
+        [switch]$Resolve
     )
     $Path = (Resolve-Path $Path).Path
     $GitPathRaw = Invoke-Git rev-parse --show-toplevel -Path $Path
@@ -93,7 +98,14 @@ function Get-GitChangedFile {
         }
         foreach($item in $Files)
         {
-            ( Resolve-Path (Join-Path $GitPath $Item) ).Path
+            if($Resolve)
+            {
+                ( Resolve-Path (Join-Path $GitPath $Item) ).Path
+            }
+            else
+            {
+                Join-Path $GitPath $Item
+            }
         }
     }
     else
