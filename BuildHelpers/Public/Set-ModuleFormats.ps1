@@ -99,5 +99,8 @@ function Set-ModuleFormats {
         }
 
         Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+
+        # Close down the runspace
+        $PowerShell.Dispose()
     }
 }
