@@ -13,6 +13,7 @@ function Get-ProjectName {
             * Subfolder with the same name as the current folder
             * Subfolder with a <subfolder-name>.psd1 file in it
             * Current folder with a <currentfolder-name>.psd1 file in it
+            + Subfolder called "Source" or "src" (not case-sensitivve) with a psd1 file in it
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path
