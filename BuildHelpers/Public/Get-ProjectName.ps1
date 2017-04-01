@@ -69,6 +69,15 @@ function Get-ProjectName {
         {
             $CurrentFolder
         }
+        # PSD1 in Source or Src folder
+        elseif( Get-Item "$Path\S*rc*\*.psd1", -OutVariable SourceManifests)
+        {
+            If ( $SourceManifests.Count -gt 1 )
+            {
+                Write-Warning "Found more than one project manifest in the Source folder"
+            }
+            $SourceManifests.BaseName
+        }
         else
         {
             Write-Warning "Could not find a project from $($Path)"
