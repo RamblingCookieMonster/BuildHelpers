@@ -14,6 +14,9 @@ function Get-ProjectName {
             * Subfolder with a <subfolder-name>.psd1 file in it
             * Current folder with a <currentfolder-name>.psd1 file in it
 
+        If no suitable project name is discovered, the function will return
+        the name of the root folder as the project name.
+
     .PARAMETER Path
         Path to project root. Defaults to the current working path
 
