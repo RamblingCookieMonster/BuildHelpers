@@ -71,7 +71,8 @@ function Get-ProjectName {
         }
         else
         {
-            Write-Warning "Could not find a project from $($Path)"
+            Write-Warning "Could not find a project from $($Path); defaulting to project root for name"
+            Split-Path $Path -Leaf
         }
     }
 }
