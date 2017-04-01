@@ -13,6 +13,7 @@
             * Subfolder with the same name as the current folder with a psd1 file in it
             * Subfolder with a <subfolder-name>.psd1 file in it
             * Current folder with a <currentfolder-name>.psd1 file in it
+            + Subfolder called "Source" or "src" (not case-sensitive) with a psd1 file in it
 
         Note: This does not handle paths in the format Folder\ModuleName\Version\
 
@@ -75,6 +76,15 @@
         elseif( Test-Path "$ExpectedPath.psd1" )
         {
             "$ExpectedPath.psd1"
+        }
+        # PSD1 in Source or Src folder
+        elseif( Get-Item "$Path\S*rc*\*.psd1" -OutVariable SourceManifests)
+        {
+            If ( $SourceManifests.Count -gt 1 )
+            {
+                Write-Warning "Found more than one project manifest in the Source folder"
+            }
+            $SourceManifests.BaseName
         }
         else
         {
