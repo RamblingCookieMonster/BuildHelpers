@@ -13,7 +13,7 @@ function Get-ProjectName {
             * Subfolder with the same name as the current folder
             * Subfolder with a <subfolder-name>.psd1 file in it
             * Current folder with a <currentfolder-name>.psd1 file in it
-            + Subfolder called "Source" or "src" (not case-sensitivve) with a psd1 file in it
+            + Subfolder called "Source" or "src" (not case-sensitive) with a psd1 file in it
 
         If no suitable project name is discovered, the function will return
         the name of the root folder as the project name.
@@ -74,7 +74,7 @@ function Get-ProjectName {
             $CurrentFolder
         }
         # PSD1 in Source or Src folder
-        elseif( Get-Item "$Path\S*rc*\*.psd1", -OutVariable SourceManifests)
+        elseif( Get-Item "$Path\S*rc*\*.psd1" -OutVariable SourceManifests)
         {
             If ( $SourceManifests.Count -gt 1 )
             {
