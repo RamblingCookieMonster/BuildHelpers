@@ -46,9 +46,17 @@ function Set-ModuleFunctions {
             Passthru = $True
             Name = $Name
         }
-        
+
+        # Create a runspace, add script to run
+        $PowerShell = [Powershell]::Create()
+        [void]$PowerShell.AddScript({
+            Param ($Force, $Passthru, $Name)
+            Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+
+        }).AddParameters($Params)
+
         #Consider moving this to a runspace or job to keep session clean
-        $Module = ( Import-Module @params )
+        $Module = $PowerShell.Invoke()
         if(-not $Module)
         {
             Throw "Could not find module '$Name'"
@@ -68,5 +76,8 @@ function Set-ModuleFunctions {
         }
 
         Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
+        
+        # Close down the runspace
+        $PowerShell.Dispose()
     }
 }

@@ -284,3 +284,32 @@ Describe 'Invoke-Git' {
         }
     }
 }
+
+Describe 'Get-ModuleFunctions' {
+    Context 'dummymodule' {
+        It 'Should return the functions output by a module' {
+            $Functions = Get-ModuleFunctions -Name $PSScriptRoot\TestData\dummymodule
+            $Functions.Count | Should be 3
+            'a', 'b', 'c' | Foreach {
+                $Functions -contains $_ | Should Be $True
+            }
+        }
+    }
+}
+
+Describe 'Set-ModuleFunctions' {
+    Context 'dummymodule' {
+        $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
+        Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
+        Copy-item $PSScriptRoot\TestData\dummymodule.psm1 $dummydir -Confirm:$False
+        It 'Should update the module manifest with exported functions' {
+            Set-ModuleFunctions -Name $dummydir
+            $Functions = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FunctionsToExport
+            $Functions.Count | Should be 3
+            'a', 'b', 'c' | Foreach {
+                $Functions -contains $_ | Should Be $True
+            }
+        }s
+        Remove-Item $dummydir -Force -Confirm:$False -Recurse
+    }
+}

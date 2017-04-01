@@ -44,6 +44,16 @@ function Get-ModuleFunctions {
             Name = $Name
         }
 
-        ( Import-Module @params ).ExportedCommands.Keys
+        # Create a runspace, add script to run
+        $PowerShell = [Powershell]::Create()
+        [void]$PowerShell.AddScript({
+            Param ($Force, $Passthru, $Name)
+            Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+
+        }).AddParameters($Params)
+
+        ( $PowerShell.Invoke() ).ExportedCommands.Keys
+
+        $PowerShell.Dispose()
     }
 }
