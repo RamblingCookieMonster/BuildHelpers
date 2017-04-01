@@ -5,10 +5,10 @@ Properties {
         $ProjectRoot = $ENV:BHProjectPath
         if(-not $ProjectRoot)
         {
-            $ProjectRoot = $PSScriptRoot
+            $ProjectRoot = Resolve-Path "$PSScriptRoot\.."
         }
 
-    $Timestamp = Get-date -uformat "%Y%m%d-%H%M%S"
+    $Timestamp = Get-Date -UFormat "%Y%m%d-%H%M%S"
     $PSVersion = $PSVersionTable.PSVersion.Major
     $TestFile = "TestResults_PS$PSVersion`_$TimeStamp.xml"
     $lines = '----------------------------------------------------------------------'
@@ -20,27 +20,13 @@ Properties {
     }
 }
 
-Task Default -Depends Deploy
+Task Default -Depends Test
 
 Task Init {
     $lines
     Set-Location $ProjectRoot
     "Build System Details:"
     Get-Item ENV:BH*
-    if($Verbose.Verbose)
-    {
-        "`nPSVersionTable:"
-        $PSVersionTable
-
-        "`nModule Paths"
-        $ENV:PSModulePath -split ';'
-
-        "`nModules Loaded:"
-        Get-Module | Select Name, Path
-
-        "`nModules Available:"
-        Get-Module -ListAvailable | Select Name, Path
-    }
     "`n"
 }
 
@@ -72,37 +58,29 @@ Task Test -Depends Init  {
 
 Task Build -Depends Test {
     $lines
-  
+    
     # Load the module, read the exported functions, update the psd1 FunctionsToExport
     Set-ModuleFunctions
 
     # Bump the module version
-    $Version = Get-NextPSGalleryVersion -Name $env:BHProjectName
-    Update-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -Value $Version
+    Try
+    {
+        $Version = Get-NextPSGalleryVersion -Name $env:BHProjectName -ErrorAction Stop
+        Update-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -Value $Version -ErrorAction stop
+    }
+    Catch
+    {
+        "Failed to update version for '$env:BHProjectName': $_.`nContinuing with existing version"
+    }
 }
 
 Task Deploy -Depends Build {
     $lines
 
-    # Gate deployment
-    if(
-        $ENV:BHBuildSystem -ne 'Unknown' -and
-        $ENV:BHBranchName -eq "master" -and
-        $ENV:BHCommitMessage -match '!deploy'
-    )
-    {
-        $Params = @{
-            Path = $ProjectRoot
-            Force = $true
-        }
-
-        Invoke-PSDeploy @Verbose @Params
+    $Params = @{
+        Path = "$ProjectRoot\Build"
+        Force = $true
+        Recurse = $false # We keep psdeploy artifacts, avoid deploying those : )
     }
-    else
-    {
-        "Skipping deployment: To deploy, ensure that...`n" +
-        "`t* You are in a known build system (Current: $ENV:BHBuildSystem)`n" +
-        "`t* You are committing to the master branch (Current: $ENV:BHBranchName) `n" +
-        "`t* Your commit message includes !deploy (Current: $ENV:BHCommitMessage)"
-    }
+    Invoke-PSDeploy @Verbose @Params
 }
