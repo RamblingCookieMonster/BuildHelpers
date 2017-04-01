@@ -309,7 +309,7 @@ Describe 'Set-ModuleFunctions' {
             'a', 'b', 'c' | Foreach {
                 $Functions -contains $_ | Should Be $True
             }
-        }s
+        }
         Remove-Item $dummydir -Force -Confirm:$False -Recurse
     }
 }
