@@ -84,7 +84,7 @@
             {
                 Write-Warning "Found more than one project manifest in the Source folder"
             }
-            $SourceManifests.BaseName
+            $SourceManifests.FullName
         }
         else
         {
