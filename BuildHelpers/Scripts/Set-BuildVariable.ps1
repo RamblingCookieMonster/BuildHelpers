@@ -29,6 +29,9 @@
 
     The scope value Script may only be used with dot-sourced Set-BuildVariable.
 
+.PARAMETER VariableNamePrefix
+    Allow to set a custom Prefix to the Environment variable created. The default is BH such as $BHProjectPath
+
 .NOTES
     We assume you are in the project root, for several of the fallback options
 
@@ -41,6 +44,12 @@
 .EXAMPLE
     . Set-BuildVariable -Scope Script
     Get-Variable BH* -Scope Script
+
+    # Set build variables in the script scope (mind the .), read them
+
+.EXAMPLE
+    . Set-BuildVariable -VariableNamePrefix BUILD
+    Get-Variable BUILD*
 
     # Set build variables in the script scope (mind the .), read them
 

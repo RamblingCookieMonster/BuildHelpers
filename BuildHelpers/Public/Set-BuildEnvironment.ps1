@@ -21,6 +21,12 @@ function Set-BuildEnvironment {
     .PARAMETER Path
         Path to project root. Defaults to the current working path
 
+    .PARAMETER VariableNamePrefix
+        Allow to set a custom Prefix to the Environment variable created. The default is BH such as $Env:BHProjectPath
+
+    .PARAMETER Force
+        Overrides the Environment Variables even if they exist already
+
     .NOTES
         We assume you are in the project root, for several of the fallback options
 
@@ -28,6 +34,11 @@ function Set-BuildEnvironment {
         Set-BuildEnvironment
 
         Get-Item ENV:BH*
+
+    .EXAMPLE
+        Set-BuildEnvironment -VariableNamePrefix '' -Force
+
+        Get-Item ENV:* 
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -43,23 +54,30 @@ function Set-BuildEnvironment {
     #>
     [cmdletbinding()]
     param(
-        $Path = $PWD.Path
+        $Path = $PWD.Path,
+
+        [ValidatePattern('\w*')]
+        [String]
+        $VariableNamePrefix = 'BH',
+
+        [switch]
+        $Force
     )
 
-    $BuildVars = Get-BuildVariables -Path $Path
-    $ProjectName = Get-ProjectName -Path $Path
-    $ManifestPath = Get-PSModuleManifest -Path $Path
-
-    $ENV:BHBuildSystem = $BuildVars.BuildSystem
-    $ENV:BHProjectPath = $BuildVars.ProjectPath
-    $ENV:BHBranchName = $BuildVars.BranchName
-    $ENV:BHCommitMessage = $BuildVars.CommitMessage
-    $ENV:BHBuildNumber = $BuildVars.BuildNumber
-    $ENV:BHProjectName = $ProjectName
-    $ENV:BHPSModuleManifest = $ManifestPath
-    if($ManifestPath)
-    {
-        $ENV:BHPSModulePath = Split-Path -Path $ManifestPath -Parent
+    ${Build.Vars} = Get-BuildVariables -Path $Path
+    ${Build.ProjectName} = Get-ProjectName -Path $Path
+    ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
+    $BuildHelpersVariables = @{
+        BuildSystem = ${Build.Vars}.BuildSystem
+        ProjectPath = ${Build.Vars}.ProjectPath
+        BranchName  = ${Build.Vars}.BranchName
+        CommitMessage = ${Build.Vars}.CommitMessage
+        BuildNumber = ${Build.Vars}.BuildNumber
+        ProjectName = ${Build.ProjectName}
+        PSModuleManifest = ${Build.ManifestPath}
+        PSModulePath = $(Split-Path -Path ${Build.ManifestPath} -Parent)
     }
-
+    foreach ($VarName in $BuildHelpersVariables.Keys) {
+        New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
+    }
 }
