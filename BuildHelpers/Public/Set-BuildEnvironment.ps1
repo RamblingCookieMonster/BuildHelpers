@@ -38,7 +38,7 @@ function Set-BuildEnvironment {
     .EXAMPLE
         Set-BuildEnvironment -VariableNamePrefix '' -Force
 
-        Get-Item ENV:* 
+        Get-Item ENV:*
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -67,6 +67,10 @@ function Set-BuildEnvironment {
     ${Build.Vars} = Get-BuildVariables -Path $Path
     ${Build.ProjectName} = Get-ProjectName -Path $Path
     ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
+    if( ${Build.ManifestPath} )
+    {
+        ${Build.ModulePath} = Split-Path -Path ${Build.ManifestPath} -Parent
+    }
     $BuildHelpersVariables = @{
         BuildSystem = ${Build.Vars}.BuildSystem
         ProjectPath = ${Build.Vars}.ProjectPath
@@ -75,7 +79,7 @@ function Set-BuildEnvironment {
         BuildNumber = ${Build.Vars}.BuildNumber
         ProjectName = ${Build.ProjectName}
         PSModuleManifest = ${Build.ManifestPath}
-        PSModulePath = $(Split-Path -Path ${Build.ManifestPath} -Parent)
+        PSModulePath = ${Build.ModulePath}
     }
     foreach ($VarName in $BuildHelpersVariables.Keys) {
         New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force

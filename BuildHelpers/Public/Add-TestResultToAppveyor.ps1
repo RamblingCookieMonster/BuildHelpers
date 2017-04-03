@@ -1,26 +1,20 @@
-<#
-.SYNOPSIS
-    Short description
-
-.DESCRIPTION
-    Long description
-
-.EXAMPLE
-    Example of how to use this cmdlet
-
-.EXAMPLE
-    Another example of how to use this cmdlet
-
-.INPUTS
-    Inputs to this cmdlet (if any)
-
-.OUTPUTS
-    Output from this cmdlet (if any)
-
-.NOTES
-    General notes
-#>
 function Add-TestResultToAppveyor {
+    <#
+    .SYNOPSIS
+        Upload test results to AppVeyor
+
+    .DESCRIPTION
+        Upload test results to AppVeyor
+
+    .EXAMPLE
+        Add-TestResultToAppVeyor -TestFile C:\testresults.xml
+
+    .LINK
+        https://github.com/RamblingCookieMonster/BuildHelpers
+
+    .LINK
+        about_BuildHelpers
+    #>
     [CmdletBinding()]
     [OutputType([void])]
     Param (
@@ -42,11 +36,11 @@ function Add-TestResultToAppveyor {
         [string[]]
         $TestFile
     )
-    
+
     begin {
             $wc = New-Object 'System.Net.WebClient'
     }
-    
+
     process {
         foreach ($File in $TestFile) {
             if (Test-Path $File) {
@@ -55,7 +49,7 @@ function Add-TestResultToAppveyor {
             }
         }
     }
-    
+
     end {
         $wc.Dispose()
     }
