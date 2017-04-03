@@ -24,6 +24,9 @@ function Set-BuildEnvironment {
     .PARAMETER VariableNamePrefix
         Allow to set a custom Prefix to the Environment variable created. The default is BH such as $Env:BHProjectPath
 
+    .PARAMETER Passthru
+        If specified, include output of the build variables we create
+
     .PARAMETER Force
         Overrides the Environment Variables even if they exist already
 
@@ -82,6 +85,10 @@ function Set-BuildEnvironment {
         PSModulePath = ${Build.ModulePath}
     }
     foreach ($VarName in $BuildHelpersVariables.Keys) {
-        New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
+        $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
+        if($Passthru)
+        {
+            $Output
+        }
     }
 }
