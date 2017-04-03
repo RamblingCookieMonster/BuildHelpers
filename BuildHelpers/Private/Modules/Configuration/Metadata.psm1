@@ -578,7 +578,9 @@ function Update-Metadata {
                                            ).Insert($Extent.StartOffset, $Value)
 
     if(Test-Path $Path) {
-        Set-Content $Path $ManifestContent
+        $stream = [System.IO.StreamWriter] $Path
+        $stream.Write($ManifestContent)
+        $stream.close()
     } else {
         $ManifestContent
     }
