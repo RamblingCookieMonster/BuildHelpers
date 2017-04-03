@@ -25,7 +25,7 @@ function Add-TestResultToAppveyor {
     [OutputType([void])]
     Param (
         # Appveyor Job ID
-        [int]
+        [String]
         $APPVEYOR_JOB_ID = $Env:APPVEYOR_JOB_ID,
 
         [ValidateSet('mstest','xunit','nunit','nunit3','junit')]
@@ -38,7 +38,7 @@ function Add-TestResultToAppveyor {
                    ValueFromPipelineByPropertyName,
                    ValueFromRemainingArguments
         )]
-        [Alias("Path")]
+        [Alias("FullName")]
         [string[]]
         $TestFile
     )
