@@ -56,7 +56,7 @@
                      'PackageProvider',
                      'PackageSource')]
         [string[]]$Detail = '*',
-        [switch]$KillKittens,
+        [switch]$KillKittens
     )
 
     if($Detail -contains '*')
