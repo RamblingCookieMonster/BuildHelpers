@@ -57,8 +57,6 @@
                      'PackageSource')]
         [string[]]$Detail = '*',
         [switch]$KillKittens,
-        [string]$OutputPath 
-
     )
 
     if($Detail -contains '*')
@@ -78,7 +76,6 @@
     }
 
     $Details = @{}
-
     switch ($Detail)
     {
         'PSVersionTable'   { $Details.set_item($_, $PSVersionTable)}
