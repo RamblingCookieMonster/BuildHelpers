@@ -85,10 +85,12 @@ function Set-BuildEnvironment {
         PSModulePath = ${Build.ModulePath}
     }
     foreach ($VarName in $BuildHelpersVariables.Keys) {
-        $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
-        if($Passthru)
-        {
-            $Output
+        if($null -ne $BuildHelpersVariable[$VarName]) {
+            $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
+            if($Passthru)
+            {
+                $Output
+            }
         }
     }
 }
