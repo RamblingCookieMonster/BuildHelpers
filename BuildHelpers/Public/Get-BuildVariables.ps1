@@ -59,12 +59,13 @@ function Get-BuildVariables {
         $Path = $PWD.Path
     )
 
-$Environment = Get-Item ENV:
-$IsGitRepo = Test-Path $( Join-Path $Path .git )
+    $Path = ( Resolve-Path $Path ).Path
+    $Environment = Get-Item ENV:
+    $IsGitRepo = Test-Path $( Join-Path $Path .git )
 
-$tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
+    $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
 
-# Determine the build system:
+    # Determine the build system:
     $BuildSystem = switch ($Environment.Name)
     {
         'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
@@ -79,13 +80,13 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         $BuildSystem = 'Unknown'
     }
 
-# Find the build folder based on build system
+    # Find the build folder based on build system
     $BuildRoot = switch ($Environment.Name)
     {
-        'APPVEYOR_BUILD_FOLDER'         { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_PROJECT_DIR'                { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
-        'WORKSPACE'                     { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
-        'BUILD_REPOSITORY_LOCALPATH'    { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
+        'APPVEYOR_BUILD_FOLDER'          { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
+        'CI_PROJECT_DIR'                 { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
+        'WORKSPACE'                      { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
+        'BUILD_REPOSITORY_LOCALPATH'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
         'BAMBOO_BUILD_WORKING_DIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
     }
     if(-not $BuildRoot)
@@ -98,13 +99,13 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         }
     }
 
-# Find the git branch
+    # Find the git branch
     $BuildBranch = switch ($Environment.Name)
     {
-        'APPVEYOR_REPO_BRANCH'      { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_BUILD_REF_NAME'         { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
-        'GIT_BRANCH'                { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
-        'BUILD_SOURCEBRANCHNAME'    { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'APPVEYOR_REPO_BRANCH'         { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
+        'CI_BUILD_REF_NAME'            { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
+        'GIT_BRANCH'                   { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
+        'BUILD_SOURCEBRANCHNAME'       { (Get-Item -Path "ENV:$_").Value; break } # VSTS
         'BAMBOO_REPOSITORY_GIT_BRANCH' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
     }
     if(-not $BuildBranch)
@@ -113,11 +114,11 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         {
             # Using older than 1.6.3 in your build system? Yuck
             # Thanks to earl: http://stackoverflow.com/a/1418022/3067642
-            $BuildBranch = git rev-parse --abbrev-ref HEAD
+            $BuildBranch = Invoke-Git -Arguments "rev-parse --abbrev-ref HEAD" -Path $Path
         }
     }
 
-# Find the git commit message
+    # Find the git commit message
     $CommitMessage = switch ($Environment.Name)
     {
         'APPVEYOR_REPO_COMMIT_MESSAGE' {
@@ -127,49 +128,48 @@ $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but du
         'CI_BUILD_REF' {
             if($IsGitRepo)
             {
-                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
                 break
             } # Gitlab - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
         'GIT_COMMIT' {
             if($IsGitRepo)
             {
-                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                Invoke-Git  -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
         'BUILD_SOURCEVERSION' {
             if($IsGitRepo)
             {
-                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
                 break
             } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
         }
         'BUILD_VCS_NUMBER' {
             if($IsGitRepo)
             {
-                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
                 break
             } # Teamcity https://confluence.jetbrains.com/display/TCD10/Predefined+Build+Parameters
         }
         'BAMBOO_REPOSITORY_REVISION_NUMBER' {
             if($IsGitRepo)
             {
-                git log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )
+                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
                 break
             } # Bamboo https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
-            
         }        
     }
     if(-not $CommitMessage)
     {
         if($IsGitRepo)
         {
-            $CommitMessage = git log --format=%B -n 1
+            $CommitMessage = Invoke-Git -Arguments "log --format=%B -n 1" -Path $Path
         }
     }
 
-# Build number
+    # Build number
     $BuildNumber = switch ($Environment.Name)
     {
         'APPVEYOR_BUILD_NUMBER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor

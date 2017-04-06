@@ -43,6 +43,8 @@
         $Path = $PWD.Path
     )
 
+    $Path = ( Resolve-Path $Path ).Path
+
     $CurrentFolder = Split-Path $Path -Leaf
     $ExpectedPath = Join-Path -Path $Path -ChildPath $CurrentFolder
     $ExpectedManifest = Join-Path -Path $ExpectedPath -ChildPath "$CurrentFolder.psd1"

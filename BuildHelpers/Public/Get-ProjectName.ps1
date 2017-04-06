@@ -43,7 +43,7 @@ function Get-ProjectName {
     param(
         $Path = $PWD.Path
     )
-
+    $Path = ( Resolve-Path $Path ).Path
     $CurrentFolder = Split-Path $Path -Leaf
     $ExpectedPath = Join-Path -Path $Path -ChildPath $CurrentFolder
     if(Test-Path $ExpectedPath)
