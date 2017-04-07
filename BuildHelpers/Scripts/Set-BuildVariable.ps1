@@ -15,7 +15,7 @@
         BHBuildNumber      via Get-BuildVariables
         BHProjectName      via Get-ProjectName
         BHPSModuleManifest via Get-PSModuleManifest
-        BHPSModulePath     via Split-Path on BHPSModuleManifest
+        BHModulePath     via Split-Path on BHPSModuleManifest
 
 .PARAMETER Path
     Path to project root. Defaults to the current working path
@@ -114,7 +114,7 @@ $BuildHelpersVariables = @{
     BuildNumber = ${Build.Vars}.BuildNumber
     ProjectName = ${Build.ProjectName}
     PSModuleManifest = ${Build.ManifestPath}
-    PSModulePath = $(Split-Path -Path ${Build.ManifestPath} -Parent)
+    ModulePath = $(Split-Path -Path ${Build.ManifestPath} -Parent)
 }
 foreach ($VarName in $BuildHelpersVariables.Keys) {
     Set-Variable -Scope $Scope -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName]

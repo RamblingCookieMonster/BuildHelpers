@@ -16,7 +16,7 @@ function Set-BuildEnvironment {
             $ENV:BHBuildNumber      via Get-BuildVariables
             $ENV:BHProjectName      via Get-ProjectName
             $ENV:BHPSModuleManifest via Get-PSModuleManifest
-            $ENV:BHPSModulePath     via Split-Path on BHPSModuleManifest
+            $ENV:BHModulePath     via Split-Path on BHPSModuleManifest
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path
@@ -82,7 +82,7 @@ function Set-BuildEnvironment {
         BuildNumber = ${Build.Vars}.BuildNumber
         ProjectName = ${Build.ProjectName}
         PSModuleManifest = ${Build.ManifestPath}
-        PSModulePath = ${Build.ModulePath}
+        ModulePath = ${Build.ModulePath}
     }
     foreach ($VarName in $BuildHelpersVariables.Keys) {
         if($null -ne $BuildHelpersVariables[$VarName]) {
