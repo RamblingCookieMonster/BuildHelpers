@@ -19,7 +19,7 @@
 
 # Publish to gallery with a few restrictions
 if(
-    $env:BHModulePath -and
+    $env:BHPSModulePath -and
     $env:BHBuildSystem -ne 'Unknown' -and
     $env:BHBranchName -eq "master" -and
     $env:BHCommitMessage -match '!deploy'
@@ -27,7 +27,7 @@ if(
 {
     Deploy Module {
         By PSGalleryModule {
-            FromSource $ENV:BHModulePath
+            FromSource $ENV:BHPSModulePath
             To PSGallery
             WithOptions @{
                 ApiKey = $ENV:NugetApiKey
@@ -46,13 +46,13 @@ else
 
 # Publish to AppVeyor if we're in AppVeyor
 if(
-    $env:BHModulePath -and
+    $env:BHPSModulePath -and
     $env:BHBuildSystem -eq 'AppVeyor'
    )
 {
     Deploy DeveloperBuild {
         By AppVeyorModule {
-            FromSource $ENV:BHModulePath
+            FromSource $ENV:BHPSModulePath
             To AppVeyor
             WithOptions @{
                 Version = $env:APPVEYOR_BUILD_VERSION
