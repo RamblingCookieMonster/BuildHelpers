@@ -23,7 +23,7 @@ More to come.  Pull requests and other contributions would be welcome!
         Install-Module BuildHelpers
 
 # Import the module.
-    Import-Module BuildHelpers    #Alternatively, Import-Module \\Path\To\BuildHelpers
+    Import-Module BuildHelpers
 
 # Get commands in the module
     Get-Command -Module BuildHelpers
@@ -54,14 +54,14 @@ Get-ProjectName
 
 This checks the following expected file system organizations, in order:
 
-*File structure*:
+(1) *File structure*:
 
 * ProjectX (Repo root)
   * ProjectX (Project here)
 
 *Output*: ProjectX
 
-*File structure*:
+(2) *File structure*:
 
 * ProjectX (Repo root)
   * DifferentName (Project here. tsk tsk)
@@ -69,10 +69,25 @@ This checks the following expected file system organizations, in order:
 
 *Output*: DifferentName
 
-*File structure*:
+(3) *File structure*:
 
 * ProjectX (Repo root)
   * ProjectX.psd1 (Please don't use this organization...)
+
+*Output*: ProjectX
+
+(5) *File structure*:
+
+* ProjectWhatever (Repo root)
+  * src (or source)
+    * ProjectX.psd1
+
+*Output*: ProjectX
+
+(6) *File structure*:
+
+* ProjectX
+  * NoHelpfulIndicatorsOfProjectName.md
 
 *Output*: ProjectX
 
@@ -90,7 +105,7 @@ Get-Item ENV:BH*
 
 Here's an example, having run Set-BuildEnvironment in an AppVeyor project:
 
-[![AppVeyor Example](/Media/AppVeyor.png)](https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers/build/1.0.4)
+[![AppVeyor Example](/Media/AppVeyor.png)](https://ci.appveyor.com/project/RamblingCookieMonster/psdepend/build/1.0.91)
 
 ### Update your FunctionsToExport
 
@@ -113,8 +128,7 @@ Set-ModuleFunctions
 # Check FunctionsToExport again:
 Select-String -Path .\PSSlack\PSSlack.psd1 -Pattern FunctionsToExport
 
-    # PSSlack\PSSlack.psd1:61:FunctionsToExport = @('Find-SlackMessage','Get-PSSlackConfig','Get-SlackChannel','Get-SlackHistory','Get-SlackUser','New-Sla
-ckField','New-SlackMessage','New-SlackMessageAttachment','Send-SlackApi','Send-SlackFile','Send-SlackMessage','Set-PSSlackConfig')
+    # PSSlack\PSSlack.psd1:61:FunctionsToExport = @('Find-SlackMessage','Get-PSSlackConfig','Get-SlackChannel','Get-SlackHistory','Get-SlackUser','New-SlackField','New-SlackMessage','New-SlackMessageAttachment','Send-SlackApi','Send-SlackFile','Send-SlackMessage','Set-PSSlackConfig')
 ```
 
 ### Update your ModuleVersion
