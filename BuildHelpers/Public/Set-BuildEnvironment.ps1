@@ -17,12 +17,25 @@ function Set-BuildEnvironment {
             $ENV:<VariableNamePrefix>ProjectName      via Get-ProjectName
             $ENV:<VariableNamePrefix>PSModuleManifest via Get-PSModuleManifest
             $ENV:<VariableNamePrefix>ModulePath       via Split-Path on PSModuleManifest
+            $ENV:<VariableNamePrefix>BuildOutput      via BuildOutput parameter
+
+        If you don't specify a prefix or use BH, we create BHPSModulePath (This will be removed July 1st)
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path
 
     .PARAMETER VariableNamePrefix
         Allow to set a custom Prefix to the Environment variable created. The default is BH such as $Env:BHProjectPath
+
+    .PARAMETER BuildOutput
+        Specify a path to use for build output.  Defaults to '$ProjectPath\BuildOutput'
+
+        You may use build variables produced in this same call.  Only include the variable, not ENV or the prefix.  Use a literal $.
+
+        Examples:
+            -BuildOutput '$ProjectPath\BuildOutput'
+            -BuildOutput 'C:\Build'
+            -BuildOutput 'C:\Builds\$ProjectName'
 
     .PARAMETER Passthru
         If specified, include output of the build variables we create
@@ -42,6 +55,12 @@ function Set-BuildEnvironment {
         Set-BuildEnvironment -VariableNamePrefix '' -Force
 
         Get-Item ENV:*
+
+    .EXAMPLE
+        Set-BuildEnvironment -Path C:\sc\PSDepend -BuildOutput 'C:\Builds\$ProjectName'
+
+        # Set BuildEnvironment pointing at C:\sc\PSDepend
+        # Assuming ProjectName evaluates to PSDepend, BuildOutput variable will be set to C:\Builds\PSDepend
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -63,8 +82,12 @@ function Set-BuildEnvironment {
         [String]
         $VariableNamePrefix = 'BH',
 
+        [string]$BuildOutput = '$ProjectPath\BuildOutput',
+
         [switch]
-        $Force
+        $Force,
+
+        [switch]$Passthru
     )
 
     ${Build.Vars} = Get-BuildVariables -Path $Path
@@ -84,6 +107,11 @@ function Set-BuildEnvironment {
         PSModuleManifest = ${Build.ManifestPath}
         ModulePath = ${Build.ModulePath}
     }
+    foreach($VarName in $BuildHelpersVariables.keys){
+        $BuildOutput = $BuildOutput -replace "\`$$VarName", $BuildHelpersVariables[$VarName]
+    }
+    $BuildOutput = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BuildOutput)
+    $BuildHelpersVariables.add('BuildOutput', $BuildOutput)
     foreach ($VarName in $BuildHelpersVariables.Keys) {
         if($null -ne $BuildHelpersVariables[$VarName]) {
             $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
