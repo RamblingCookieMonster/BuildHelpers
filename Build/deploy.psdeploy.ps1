@@ -15,11 +15,11 @@
 #
 # * Nuget key in $ENV:NugetApiKey
 #
-# * Set-BuildEnvironment from BuildHelpers module has populated ENV:BHPSModulePath and related variables
+# * Set-BuildEnvironment from BuildHelpers module has populated ENV:BHModulePath and related variables
 
 # Publish to gallery with a few restrictions
 if(
-    $env:BHPSModulePath -and
+    $env:BHModulePath -and
     $env:BHBuildSystem -ne 'Unknown' -and
     $env:BHBranchName -eq "master" -and
     $env:BHCommitMessage -match '!deploy'
@@ -27,7 +27,7 @@ if(
 {
     Deploy Module {
         By PSGalleryModule {
-            FromSource $ENV:BHPSModulePath
+            FromSource $ENV:BHModulePath
             To PSGallery
             WithOptions @{
                 ApiKey = $ENV:NugetApiKey
@@ -46,13 +46,13 @@ else
 
 # Publish to AppVeyor if we're in AppVeyor
 if(
-    $env:BHPSModulePath -and
+    $env:BHModulePath -and
     $env:BHBuildSystem -eq 'AppVeyor'
    )
 {
     Deploy DeveloperBuild {
         By AppVeyorModule {
-            FromSource $ENV:BHPSModulePath
+            FromSource $ENV:BHModulePath
             To AppVeyor
             WithOptions @{
                 Version = $env:APPVEYOR_BUILD_VERSION

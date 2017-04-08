@@ -10,13 +10,13 @@ function Set-BuildEnvironment {
         Normalize build system and project details into environment variables
 
         Creates the following environment variables:
-            $ENV:BHProjectPath      via Get-BuildVariables
-            $ENV:BHBranchName       via Get-BuildVariables
-            $ENV:BHCommitMessage    via Get-BuildVariables
-            $ENV:BHBuildNumber      via Get-BuildVariables
-            $ENV:BHProjectName      via Get-ProjectName
-            $ENV:BHPSModuleManifest via Get-PSModuleManifest
-            $ENV:BHPSModulePath     via Split-Path on BHPSModuleManifest
+            $ENV:<VariableNamePrefix>ProjectPath      via Get-BuildVariables
+            $ENV:<VariableNamePrefix>BranchName       via Get-BuildVariables
+            $ENV:<VariableNamePrefix>CommitMessage    via Get-BuildVariables
+            $ENV:<VariableNamePrefix>BuildNumber      via Get-BuildVariables
+            $ENV:<VariableNamePrefix>ProjectName      via Get-ProjectName
+            $ENV:<VariableNamePrefix>PSModuleManifest via Get-PSModuleManifest
+            $ENV:<VariableNamePrefix>ModulePath       via Split-Path on PSModuleManifest
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path
@@ -82,7 +82,7 @@ function Set-BuildEnvironment {
         BuildNumber = ${Build.Vars}.BuildNumber
         ProjectName = ${Build.ProjectName}
         PSModuleManifest = ${Build.ManifestPath}
-        PSModulePath = ${Build.ModulePath}
+        ModulePath = ${Build.ModulePath}
     }
     foreach ($VarName in $BuildHelpersVariables.Keys) {
         if($null -ne $BuildHelpersVariables[$VarName]) {
@@ -91,6 +91,16 @@ function Set-BuildEnvironment {
             {
                 $Output
             }
+        }
+    }
+    if($VariableNamePrefix -eq 'BH' -and ${Build.ModulePath})
+    {
+        Write-Warning ( "`$ENV:BHPSModulePath is deprecated and will be removed July 1st, 2017`n`n" +
+                        "ACTION REQUIRED: Please replace `$ENV:BHPSModulePath with `$ENV:BHModulePath wherever you use it" )
+        $Output = New-Item -Path Env:\ -Name BHPSModulePath -Value ${Build.ModulePath} -Force:$Force
+        if($Passthru)
+        {
+            $Output
         }
     }
 }
