@@ -9,7 +9,7 @@ Many of our build scripts explicitly reference build-system-specific features.  
 
 This certainly works, but we can enable more portable build scripts by bundling up helper functions, normalizing build variables, and avoiding build-system-specific features.
 
-More to come.  Pull requests and other contributions would be welcome!
+Pull requests and other contributions welcome!
 
 ## Instructions
 
