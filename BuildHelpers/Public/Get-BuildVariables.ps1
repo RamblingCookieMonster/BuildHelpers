@@ -20,6 +20,7 @@ function Get-BuildVariables {
                 Teamcity
                 VTFS
                 Bamboo
+                GoCD
 
             For Teamcity the VCS Checkout Mode needs to be to checkout files on agent. 
             Since TeamCity 10.0, this is the default setting for the newly created build configurations.
@@ -74,6 +75,7 @@ function Get-BuildVariables {
         'BUILD_REPOSITORY_URI'  { 'VSTS'; break }
         'TEAMCITY_VERSION'      { 'Teamcity' ; break }
         'BAMBOO_BUILDKEY'       { 'Bamboo'; break }
+        'GOCD_SERVER_URL'       { 'GoCD'; break }
     }
     if(-not $BuildSystem)
     {
@@ -177,7 +179,7 @@ function Get-BuildVariables {
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
         'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
         'BAMBOO_BUILDNUMBER'    { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
-
+        'GOCD_PIPELINE_COUNTER' { (Get-Item -Path "ENV:$_").Value; break } # GoCD
     }
     if(-not $BuildNumber)
     {
