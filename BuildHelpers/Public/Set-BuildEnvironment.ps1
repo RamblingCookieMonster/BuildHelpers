@@ -18,6 +18,7 @@ function Set-BuildEnvironment {
             $ENV:<VariableNamePrefix>PSModuleManifest via Get-PSModuleManifest
             $ENV:<VariableNamePrefix>ModulePath       via Split-Path on PSModuleManifest
             $ENV:<VariableNamePrefix>BuildOutput      via BuildOutput parameter
+            $ENV:BHPSModulePath                       Legacy, via Split-Path on PSModuleManifest
 
         If you don't specify a prefix or use BH, we create BHPSModulePath (This will be removed July 1st)
 
@@ -123,8 +124,7 @@ function Set-BuildEnvironment {
     }
     if($VariableNamePrefix -eq 'BH' -and ${Build.ModulePath})
     {
-        Write-Warning ( "`$ENV:BHPSModulePath is deprecated and will be removed July 1st, 2017`n`n" +
-                        "ACTION REQUIRED: Please replace `$ENV:BHPSModulePath with `$ENV:BHModulePath wherever you use it" )
+        # Handle existing scripts that reference BHPSModulePath
         $Output = New-Item -Path Env:\ -Name BHPSModulePath -Value ${Build.ModulePath} -Force:$Force
         if($Passthru)
         {
