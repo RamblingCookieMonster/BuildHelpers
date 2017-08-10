@@ -37,6 +37,9 @@ function Get-BuildVariables {
     .PARAMETER Path
         Path to project root. Defaults to the current working path
 
+    .PARAMETER GitPath
+        Path to git.exe.  Defaults to git.exe (i.e. git.exe is in $ENV:PATH)
+
     .NOTES
         We assume you are in the project root, for several of the fallback options
 
@@ -57,13 +60,27 @@ function Get-BuildVariables {
     #>
     [cmdletbinding()]
     param(
-        $Path = $PWD.Path
+        $Path = $PWD.Path,
+        [validatescript({
+            if(-not (Get-Command $_))
+            {
+                throw "Could not find command at GitPath [$_]"
+            }
+            $true
+        })]
+        $GitPath = 'git.exe'
     )
 
     $Path = ( Resolve-Path $Path ).Path
     $Environment = Get-Item ENV:
-    $IsGitRepo = Test-Path $( Join-Path $Path .git )
-
+    $WeCanGit = ( (Test-Path $( Join-Path $Path .git )) -and (Get-Command $GitPath -ErrorAction SilentlyContinue) )
+    if($WeCanGit)
+    {
+        $IGParams = @{
+            Path = $Path
+            GitPath = $GitPath
+        }
+    }
     $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
 
     # Determine the build system:
@@ -112,11 +129,11 @@ function Get-BuildVariables {
     }
     if(-not $BuildBranch)
     {
-        if($IsGitRepo)
+        if($WeCanGit)
         {
             # Using older than 1.6.3 in your build system? Yuck
             # Thanks to earl: http://stackoverflow.com/a/1418022/3067642
-            $BuildBranch = Invoke-Git -Arguments "rev-parse --abbrev-ref HEAD" -Path $Path
+            $BuildBranch = Invoke-Git @IGParams -Arguments "rev-parse --abbrev-ref HEAD"
         }
     }
 
@@ -128,46 +145,46 @@ function Get-BuildVariables {
             break
         }
         'CI_BUILD_REF' {
-            if($IsGitRepo)
+            if($WeCanGit)
             {
-                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Gitlab - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
         'GIT_COMMIT' {
-            if($IsGitRepo)
+            if($WeCanGit)
             {
-                Invoke-Git  -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
         'BUILD_SOURCEVERSION' {
-            if($IsGitRepo)
+            if($WeCanGit)
             {
-                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
         }
         'BUILD_VCS_NUMBER' {
-            if($IsGitRepo)
+            if($WeCanGit)
             {
-                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Teamcity https://confluence.jetbrains.com/display/TCD10/Predefined+Build+Parameters
         }
         'BAMBOO_REPOSITORY_REVISION_NUMBER' {
-            if($IsGitRepo)
+            if($WeCanGit)
             {
-                Invoke-Git -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )" -Path $Path
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Bamboo https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
         }        
     }
     if(-not $CommitMessage)
     {
-        if($IsGitRepo)
+        if($WeCanGit)
         {
-            $CommitMessage = Invoke-Git -Arguments "log --format=%B -n 1" -Path $Path
+            $CommitMessage = Invoke-Git @IGParams -Arguments "log --format=%B -n 1"
         }
     }
 

@@ -41,6 +41,9 @@ function Set-BuildEnvironment {
     .PARAMETER Passthru
         If specified, include output of the build variables we create
 
+    .PARAMETER GitPath
+        Path to git.exe.  Defaults to git.exe (i.e. git.exe is in $ENV:PATH)
+
     .PARAMETER Force
         Overrides the Environment Variables even if they exist already
 
@@ -88,10 +91,23 @@ function Set-BuildEnvironment {
         [switch]
         $Force,
 
-        [switch]$Passthru
-    )
+        [switch]$Passthru,
 
-    ${Build.Vars} = Get-BuildVariables -Path $Path
+        [validatescript({
+            if(-not (Get-Command $_))
+            {
+                throw "Could not find command at GitPath [$_]"
+            }
+            $true
+        })]
+        [string]$GitPath
+    )
+    $GBVParams = @{Path = $Path}
+    if($PSBoundParameters.ContainsKey('GitPath'))
+    {
+        $GBVParams.add('GitPath', $GitPath)
+    }
+    ${Build.Vars} = Get-BuildVariables @GBVParams
     ${Build.ProjectName} = Get-ProjectName -Path $Path
     ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
     if( ${Build.ManifestPath} )

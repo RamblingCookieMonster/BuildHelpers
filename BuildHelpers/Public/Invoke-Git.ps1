@@ -37,6 +37,9 @@
     .PARAMETER Quiet
         If specified, do not return output
 
+    .PARAMETER GitPath
+        Path to git.exe.  Defaults to git.exe (i.e. git.exe is in $ENV:PATH)
+
     .EXAMPLE
         Invoke-Git rev-parse HEAD
 
@@ -72,8 +75,9 @@
             {
                 throw "Could not find command at GitPath [$_]"
             }
+            $true
         })]
-        $GitPath = 'git.exe'
+        [string]$GitPath = 'git.exe'
     )
 
     $Path = (Resolve-Path $Path).Path
