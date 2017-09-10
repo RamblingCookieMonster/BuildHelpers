@@ -73,6 +73,9 @@ function Set-BuildEnvironment {
         Get-BuildVariables
 
     .LINK
+        Get-BuildEnvironment
+
+    .LINK
         Get-ProjectName
 
     .LINK
@@ -80,6 +83,7 @@ function Set-BuildEnvironment {
     #>
     [cmdletbinding()]
     param(
+        [validatescript({ Test-Path $_ -PathType Container })]
         $Path = $PWD.Path,
 
         [ValidatePattern('\w*')]
@@ -102,33 +106,14 @@ function Set-BuildEnvironment {
         })]
         [string]$GitPath
     )
-    $GBVParams = @{Path = $Path}
-    if($PSBoundParameters.ContainsKey('GitPath'))
-    {
-        $GBVParams.add('GitPath', $GitPath)
+    $GBEParams = @{
+        Path = $Path
+        As = 'hashtable'
     }
-    ${Build.Vars} = Get-BuildVariables @GBVParams
-    ${Build.ProjectName} = Get-ProjectName -Path $Path
-    ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
-    if( ${Build.ManifestPath} )
-    {
-        ${Build.ModulePath} = Split-Path -Path ${Build.ManifestPath} -Parent
+    if($PSBoundParameters.ContainsKey('GitPath')) {
+        $GBEParams.add('GitPath', $GitPath)
     }
-    $BuildHelpersVariables = @{
-        BuildSystem = ${Build.Vars}.BuildSystem
-        ProjectPath = ${Build.Vars}.ProjectPath
-        BranchName  = ${Build.Vars}.BranchName
-        CommitMessage = ${Build.Vars}.CommitMessage
-        BuildNumber = ${Build.Vars}.BuildNumber
-        ProjectName = ${Build.ProjectName}
-        PSModuleManifest = ${Build.ManifestPath}
-        ModulePath = ${Build.ModulePath}
-    }
-    foreach($VarName in $BuildHelpersVariables.keys){
-        $BuildOutput = $BuildOutput -replace "\`$$VarName", $BuildHelpersVariables[$VarName]
-    }
-    $BuildOutput = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BuildOutput)
-    $BuildHelpersVariables.add('BuildOutput', $BuildOutput)
+    $BuildHelpersVariables = Get-BuildEnvironment @GBEParams
     foreach ($VarName in $BuildHelpersVariables.Keys) {
         if($null -ne $BuildHelpersVariables[$VarName]) {
             $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
