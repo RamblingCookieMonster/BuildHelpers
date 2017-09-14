@@ -109,6 +109,7 @@ function Set-BuildEnvironment {
     $GBEParams = @{
         Path = $Path
         As = 'hashtable'
+        BuildOutput = $BuildOutput
     }
     if($PSBoundParameters.ContainsKey('GitPath')) {
         $GBEParams.add('GitPath', $GitPath)
