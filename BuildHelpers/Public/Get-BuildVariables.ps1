@@ -21,6 +21,7 @@ function Get-BuildVariables {
                 VTFS
                 Bamboo
                 GoCD
+                Travis CI
 
             For Teamcity the VCS Checkout Mode needs to be to checkout files on agent. 
             Since TeamCity 10.0, this is the default setting for the newly created build configurations.
@@ -90,9 +91,10 @@ function Get-BuildVariables {
         'GITLAB_CI'             { 'GitLab CI' ; break }
         'JENKINS_URL'           { 'Jenkins'; break }
         'BUILD_REPOSITORY_URI'  { 'VSTS'; break }
-        'TEAMCITY_VERSION'      { 'Teamcity' ; break }
+        'TEAMCITY_VERSION'      { 'Teamcity'; break }
         'BAMBOO_BUILDKEY'       { 'Bamboo'; break }
         'GOCD_SERVER_URL'       { 'GoCD'; break }
+        'TRAVIS'                { 'Travis CI'; break }
     }
     if(-not $BuildSystem)
     {
@@ -107,6 +109,7 @@ function Get-BuildVariables {
         'WORKSPACE'                      { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
         'BUILD_REPOSITORY_LOCALPATH'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
         'BAMBOO_BUILD_WORKING_DIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
+        'TRAVIS_BUILD_DIR'               { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
     }
     if(-not $BuildRoot)
     {
@@ -126,6 +129,7 @@ function Get-BuildVariables {
         'GIT_BRANCH'                   { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
         'BUILD_SOURCEBRANCHNAME'       { (Get-Item -Path "ENV:$_").Value; break } # VSTS
         'BAMBOO_REPOSITORY_GIT_BRANCH' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
+        'TRAVIS_BRANCH'                { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
     }
     if(-not $BuildBranch)
     {
@@ -178,7 +182,11 @@ function Get-BuildVariables {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Bamboo https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
-        }        
+        }
+        'TRAVIS_COMMIT_MESSAGE' {
+            "$env:TRAVIS_COMMIT_MESSAGE"
+            break
+        }
     }
     if(-not $CommitMessage)
     {
@@ -192,11 +200,12 @@ function Get-BuildVariables {
     $BuildNumber = switch ($Environment.Name)
     {
         'APPVEYOR_BUILD_NUMBER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_BUILD_ID   '        { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
+        'CI_BUILD_ID'           { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
         'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
         'BAMBOO_BUILDNUMBER'    { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'GOCD_PIPELINE_COUNTER' { (Get-Item -Path "ENV:$_").Value; break } # GoCD
+        'TRAVIS_BUILD_NUMBER'   { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
     }
     if(-not $BuildNumber)
     {
