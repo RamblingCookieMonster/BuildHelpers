@@ -77,12 +77,15 @@
             }
             $true
         })]
-        [string]$GitPath = 'git.exe'
+        [string]$GitPath = 'git'
     )
 
     $Path = (Resolve-Path $Path).Path
     # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    if(!$PSBoundParameters.ContainsKey()) {
+        $GitPath = (Get-Command $GitPath)[0].Path
+    }
     $pinfo.FileName = $GitPath
     $Command = $GitPath
     $pinfo.CreateNoWindow = $NoWindow
