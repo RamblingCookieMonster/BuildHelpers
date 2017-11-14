@@ -33,7 +33,7 @@ function Get-BuildEnvironment {
             -BuildOutput 'C:\Builds\$ProjectName'
 
     .PARAMETER GitPath
-        Path to git.exe.  Defaults to git.exe (i.e. git.exe is in $ENV:PATH)
+        Path to git.  Defaults to git (i.e. git is in $ENV:PATH)
 
     .NOTES
         We assume you are in the project root, for several of the fallback options

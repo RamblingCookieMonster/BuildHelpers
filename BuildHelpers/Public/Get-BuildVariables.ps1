@@ -39,7 +39,7 @@ function Get-BuildVariables {
         Path to project root. Defaults to the current working path
 
     .PARAMETER GitPath
-        Path to git.exe.  Defaults to git.exe (i.e. git.exe is in $ENV:PATH)
+        Path to git.  Defaults to git (i.e. git is in $ENV:PATH)
 
     .NOTES
         We assume you are in the project root, for several of the fallback options
@@ -69,11 +69,15 @@ function Get-BuildVariables {
             }
             $true
         })]
-        $GitPath = 'git.exe'
+        $GitPath = 'git'
     )
 
     $Path = ( Resolve-Path $Path ).Path
     $Environment = Get-Item ENV:
+    if(!$PSboundParameters.ContainsKey('GitPath')) {
+        $GitPath = (Get-Command $GitPath)[0].Path
+    }
+    
     $WeCanGit = ( (Test-Path $( Join-Path $Path .git )) -and (Get-Command $GitPath -ErrorAction SilentlyContinue) )
     if($WeCanGit)
     {

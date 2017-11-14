@@ -42,7 +42,7 @@ function Set-BuildEnvironment {
         If specified, include output of the build variables we create
 
     .PARAMETER GitPath
-        Path to git.exe.  Defaults to git.exe (i.e. git.exe is in $ENV:PATH)
+        Path to git.  Defaults to git (i.e. git is in $ENV:PATH)
 
     .PARAMETER Force
         Overrides the Environment Variables even if they exist already
