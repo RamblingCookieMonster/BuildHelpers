@@ -1,13 +1,13 @@
 ﻿Function Invoke-Git {
 <#
     .SYNOPSIS
-        Wrapper to invoke git.exe and return streams
+        Wrapper to invoke git and return streams
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        Wrapper to invoke git.exe and return streams
+        Wrapper to invoke git and return streams
 
     .PARAMETER Arguments
         If specified, call git with these arguments.
@@ -15,7 +15,7 @@
         This takes a positional argument and accepts all value afterwards for a more natural 'git-esque' use.
 
     .PARAMETER Path
-        Working directory to launch git.exe within.  Defaults to current location
+        Working directory to launch git within.  Defaults to current location
 
     .PARAMETER RedirectStandardError
         Whether to capture standard error.  Defaults to $true
@@ -38,7 +38,7 @@
         If specified, do not return output
 
     .PARAMETER GitPath
-        Path to git.exe.  Defaults to git.exe (i.e. git.exe is in $ENV:PATH)
+        Path to git.  Defaults to git (i.e. git is in $ENV:PATH)
 
     .EXAMPLE
         Invoke-Git rev-parse HEAD
@@ -77,12 +77,15 @@
             }
             $true
         })]
-        [string]$GitPath = 'git.exe'
+        [string]$GitPath = 'git'
     )
 
     $Path = (Resolve-Path $Path).Path
     # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    if(!$PSBoundParameters.ContainsKey('GitPath')) {
+        $GitPath = (Get-Command $GitPath)[0].Path
+    }
     $pinfo.FileName = $GitPath
     $Command = $GitPath
     $pinfo.CreateNoWindow = $NoWindow
