@@ -19,7 +19,7 @@
 
 # Publish to gallery with a few restrictions
 if(
-    $env:BHModulePath -and
+    $env:BHPSModulePath -and
     $env:BHBuildSystem -ne 'Unknown' -and
     $env:BHBranchName -eq "master" -and
     $env:BHCommitMessage -match '!deploy'
@@ -38,7 +38,7 @@ if(
 else
 {
     "Skipping deployment: To deploy, ensure that...`n" +
-    "`t* ENV:BHModulePath is set (Current [$([bool]$env:BHModulePath)]: $ENV:BHPSModulePath)`n" +
+    "`t* ENV:BHModulePath is set (Current [$([bool]$env:BHPSModulePath)]: $ENV:BHPSModulePath)`n" +
     "`t* You are in a known build system (Current [$($env:BHBuildSystem -ne 'Unknown')]: $ENV:BHBuildSystem)`n" +
     "`t* You are committing to the master branch (Current [$($env:BHBranchName -eq "master")]: $ENV:BHBranchName) `n" +
     "`t* Your commit message includes !deploy (Current [$($env:BHCommitMessage -match '!deploy')]: $ENV:BHCommitMessage)" |
