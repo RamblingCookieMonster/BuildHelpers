@@ -124,10 +124,10 @@ function Set-BuildEnvironment {
             }
         }
     }
-    if($VariableNamePrefix -eq 'BH' -and ${Build.ModulePath})
+    if($VariableNamePrefix -eq 'BH' -and $BuildHelpersVariables.ModulePath)
     {
         # Handle existing scripts that reference BHPSModulePath
-        $Output = New-Item -Path Env:\ -Name BHPSModulePath -Value ${Build.ModulePath} -Force:$Force
+        $Output = New-Item -Path Env:\ -Name BHPSModulePath -Value $BuildHelpersVariables.ModulePath -Force:$Force
         if($Passthru)
         {
             $Output
