@@ -27,7 +27,7 @@ if(
 {
     Deploy Module {
         By PSGalleryModule {
-            FromSource $ENV:BHModulePath
+            FromSource $ENV:BHPSModulePath
             To PSGallery
             WithOptions @{
                 ApiKey = $ENV:NugetApiKey
@@ -38,7 +38,7 @@ if(
 else
 {
     "Skipping deployment: To deploy, ensure that...`n" +
-    "`t* ENV:BHModulePath is set (Current: $ENV:BHModulePath)`n" +
+    "`t* ENV:BHModulePath is set (Current: $ENV:BHPSModulePath)`n" +
     "`t* You are in a known build system (Current: $ENV:BHBuildSystem)`n" +
     "`t* You are committing to the master branch (Current: $ENV:BHBranchName) `n" +
     "`t* Your commit message includes !deploy (Current: $ENV:BHCommitMessage)" |
