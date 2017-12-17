@@ -67,7 +67,8 @@ function Set-ModuleFormats {
         # Add scriptblock to the runspace
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
-            Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            $module | Where-Object Path -notin $module.Scripts
 
         }).AddParameters($Params)
 
