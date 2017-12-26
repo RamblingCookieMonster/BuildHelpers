@@ -1,0 +1,139 @@
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.PowerShell.Commands.PSRepositoryItemInfo</T>
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="Name">Configuration</S>
+      <Version N="Version">1.2.0</Version>
+      <S N="Type">Module</S>
+      <S N="Description">A module for storing and reading configuration values, with full PS Data serialization, automatic configuration for modules and scripts, etc.</S>
+      <S N="Author">Joel Bennett</S>
+      <S N="CompanyName">Jaykul</S>
+      <S N="Copyright">Copyright (c) 2014-2017 by Joel Bennett, all rights reserved.</S>
+      <DT N="PublishedDate">2017-11-13T06:25:30-06:00</DT>
+      <Nil N="InstalledDate" />
+      <Nil N="UpdatedDate" />
+      <URI N="LicenseUri">http://opensource.org/licenses/MIT</URI>
+      <URI N="ProjectUri">https://github.com/PoshCode/Configuration</URI>
+      <Nil N="IconUri" />
+      <Obj N="Tags" RefId="1">
+        <TN RefId="1">
+          <T>System.Object[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>Development</S>
+          <S>Configuration</S>
+          <S>Settings</S>
+          <S>Storage</S>
+          <S>PSModule</S>
+        </LST>
+      </Obj>
+      <Obj N="Includes" RefId="2">
+        <TN RefId="2">
+          <T>System.Collections.Hashtable</T>
+          <T>System.Object</T>
+        </TN>
+        <DCT>
+          <En>
+            <S N="Key">Workflow</S>
+            <Obj N="Value" RefId="3">
+              <TNRef RefId="1" />
+              <LST />
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">Function</S>
+            <Obj N="Value" RefId="4">
+              <TNRef RefId="1" />
+              <LST>
+                <S>Import-Configuration</S>
+                <S>Export-Configuration</S>
+                <S>Get-StoragePath</S>
+                <S>Add-MetadataConverter</S>
+                <S>ConvertFrom-Metadata</S>
+                <S>ConvertTo-Metadata</S>
+                <S>Export-Metadata</S>
+                <S>Import-Metadata</S>
+                <S>Update-Manifest</S>
+                <S>Get-ManifestValue</S>
+              </LST>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">Cmdlet</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+          <En>
+            <S N="Key">DscResource</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+          <En>
+            <S N="Key">Command</S>
+            <Obj N="Value" RefId="5">
+              <TNRef RefId="1" />
+              <LST>
+                <S>Import-Configuration</S>
+                <S>Export-Configuration</S>
+                <S>Get-StoragePath</S>
+                <S>Add-MetadataConverter</S>
+                <S>ConvertFrom-Metadata</S>
+                <S>ConvertTo-Metadata</S>
+                <S>Export-Metadata</S>
+                <S>Import-Metadata</S>
+                <S>Update-Manifest</S>
+                <S>Get-ManifestValue</S>
+              </LST>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">RoleCapability</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+        </DCT>
+      </Obj>
+      <Nil N="PowerShellGetFormatVersion" />
+      <S N="ReleaseNotes">v1.1.0:_x000D__x000A_            Added support for ScriptBlocks and SwitchParameters_x000D__x000A_            Added support for serializing objects as hashtables</S>
+      <Obj N="Dependencies" RefId="6">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <S N="RepositorySourceLocation">https://www.powershellgallery.com/api/v2/</S>
+      <S N="Repository">PSGallery</S>
+      <S N="PackageManagementProvider">NuGet</S>
+      <Obj N="AdditionalMetadata" RefId="7">
+        <TN RefId="3">
+          <T>System.Management.Automation.PSCustomObject</T>
+          <T>System.Object</T>
+        </TN>
+        <MS>
+          <S N="copyright">Copyright (c) 2014-2017 by Joel Bennett, all rights reserved.</S>
+          <S N="description">A module for storing and reading configuration values, with full PS Data serialization, automatic configuration for modules and scripts, etc.</S>
+          <S N="requireLicenseAcceptance">True</S>
+          <S N="releaseNotes">v1.1.0:_x000D__x000A_            Added support for ScriptBlocks and SwitchParameters_x000D__x000A_            Added support for serializing objects as hashtables</S>
+          <S N="isLatestVersion">True</S>
+          <S N="isAbsoluteLatestVersion">True</S>
+          <S N="versionDownloadCount">811</S>
+          <S N="downloadCount">5787</S>
+          <S N="packageSize">38722</S>
+          <S N="published">11/13/17 6:25:30 AM -06:00</S>
+          <S N="created">11/13/17 6:25:30 AM -06:00</S>
+          <S N="tags">Development Configuration Settings Storage PSModule PSFunction_Import-Configuration PSCommand_Import-Configuration PSFunction_Export-Configuration PSCommand_Export-Configuration PSFunction_Get-StoragePath PSCommand_Get-StoragePath PSFunction_Add-MetadataConverter PSCommand_Add-MetadataConverter PSFunction_ConvertFrom-Metadata PSCommand_ConvertFrom-Metadata PSFunction_ConvertTo-Metadata PSCommand_ConvertTo-Metadata PSFunction_Export-Metadata PSCommand_Export-Metadata PSFunction_Import-Metadata PSCommand_Import-Metadata PSFunction_Update-Manifest PSCommand_Update-Manifest PSFunction_Get-ManifestValue PSCommand_Get-ManifestValue PSIncludes_Function</S>
+          <S N="developmentDependency">False</S>
+          <S N="updated">2017-12-26T10:51:45Z</S>
+          <S N="NormalizedVersion">1.2.0</S>
+          <S N="IsPrerelease">false</S>
+          <S N="ItemType">Module</S>
+          <S N="FileList">Configuration.nuspec|Configuration.psd1|Configuration.psm1|Metadata.psm1|en-US\about_Configuration.help.txt</S>
+          <S N="GUID">e56e5bec-4d97-4dfd-b138-abbaa14464a6</S>
+          <S N="CompanyName">HuddledMasses.org</S>
+        </MS>
+      </Obj>
+      <S N="InstalledLocation">/Users/michael.lombardi/personal/BuildHelpers/BuildHelpers/Private/Modules/Configuration/1.2.0</S>
+    </MS>
+  </Obj>
+</Objs>
