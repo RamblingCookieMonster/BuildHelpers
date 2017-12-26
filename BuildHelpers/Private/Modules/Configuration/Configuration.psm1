@@ -1,21 +1,125 @@
 # Allows you to override the Scope storage paths (e.g. for testing)
 param(
     $Converters     = @{},
-    $EnterpriseData = $Env:AppData,
-    $UserData       = $Env:LocalAppData,
-    $MachineData    = $Env:ProgramData
+    $EnterpriseData,
+    $UserData,
+    $MachineData
 )
-
-$EnterpriseData = Join-Path $EnterpriseData WindowsPowerShell
-$UserData       = Join-Path $UserData   WindowsPowerShell
-$MachineData    = Join-Path $MachineData WindowsPowerShell
 
 $ConfigurationRoot = Get-Variable PSScriptRoot* -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq "PSScriptRoot" } | ForEach-Object { $_.Value }
 if(!$ConfigurationRoot) {
     $ConfigurationRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
 }
 
+function InitializeStoragePaths {
+    [CmdletBinding()]
+    param(
+        $EnterpriseData,
+        $UserData,
+        $MachineData
+    )
+
+    # Where the user's personal configuration settings go.
+    # Highest presedence, overrides all other settings.
+    if([string]::IsNullOrWhiteSpace($UserData)) {
+        if(!($UserData = $MyInvocation.MyCommand.Module.PrivateData.PathOverride.UserData)) {
+            if($IsLinux -or $IsMacOs) {
+                # Defaults to $Env:XDG_CONFIG_HOME on Linux or MacOS ($HOME/.config/)
+                if(!($UserData = $Env:XDG_CONFIG_HOME)) {
+                    $UserData = "$HOME/.config/"
+                }
+            } else {
+                # Defaults to $Env:LocalAppData on Windows
+                if(!($UserData = $Env:LocalAppData)) {
+                    $UserData = [Environment]::GetFolderPath("LocalApplicationData")
+                }
+            }
+        }
+    }
+
+    # On some systems there are "roaming" user configuration stored in the user's profile. Overrides machine configuration
+    if([string]::IsNullOrWhiteSpace($EnterpriseData)) {
+        if(!($EnterpriseData = $MyInvocation.MyCommand.Module.PrivateData.PathOverride.EnterpriseData)) {
+            if($IsLinux -or $IsMacOs) {
+                # Defaults to the first value in $Env:XDG_CONFIG_DIRS on Linux or MacOS (or $HOME/.local/share/)
+                if(!($EnterpriseData = @($Env:XDG_CONFIG_DIRS -split ([IO.Path]::PathSeparator))[0] )) {
+                    $EnterpriseData = "$HOME/.local/share/"
+                }
+            } else {
+                # Defaults to $Env:AppData on Windows
+                if(!($EnterpriseData = $Env:AppData)) {
+                    $EnterpriseData = [Environment]::GetFolderPath("ApplicationData")
+                }
+            }
+        }
+    }
+
+    # Machine specific configuration. Overrides defaults, but is overriden by both user roaming and user local settings
+    if([string]::IsNullOrWhiteSpace($MachineData)) {
+        if(!($MachineData = $MyInvocation.MyCommand.Module.PrivateData.PathOverride.MachineData)) {
+            if($IsLinux -or $IsMacOs) {
+                # Defaults to /etc/xdg elsewhere
+                $XdgConfigDirs = $Env:XDG_CONFIG_DIRS -split ([IO.Path]::PathSeparator) | Where-Object { $_ -and (Test-Path $_) }
+                if(!($MachineData = if($XdgConfigDirs.Count -gt 1) { $XdgConfigDirs[1]})) {
+                    $MachineData = "/etc/xdg/"
+                }
+            } else {
+                # Defaults to $Env:ProgramData on Windows
+                if(!($MachineData = $Env:ProgramAppData)) {
+                    $MachineData = [Environment]::GetFolderPath("CommonApplicationData")
+                }
+            }
+        }
+    }
+
+    Join-Path $EnterpriseData powershell
+    Join-Path $UserData powershell
+    Join-Path $MachineData powershell
+}
+
+$EnterpriseData, $UserData, $MachineData = InitializeStoragePaths $EnterpriseData $UserData $MachineData
+
 Import-Module "${ConfigurationRoot}\Metadata.psm1" -Force -Args @($Converters)
+
+function ParameterBinder {
+    if(!$Module) {
+        [System.Management.Automation.PSModuleInfo]$Module = . {
+            $mi = ($CallStack)[0].InvocationInfo.MyCommand.Module
+            if($mi -and $mi.ExportedCommands.Count -eq 0) {
+                if($mi2 = Get-Module $mi.ModuleBase -ListAvailable | Where-Object { ($_.Name -eq $mi.Name) -and $_.ExportedCommands } | Select-Object -First 1) {
+                   $mi = $mi2
+                }
+            }
+            $mi
+        }
+    }
+
+    if(!$CompanyName) {
+        [String]$CompanyName = . {
+            if($Module){
+                $CName = $Module.CompanyName -replace "[$([Regex]::Escape(-join[IO.Path]::GetInvalidFileNameChars()))]","_"
+                if($CName -eq "Unknown" -or -not $CName) {
+                    $CName = $Module.Author
+                    if($CName -eq "Unknown" -or -not $CName) {
+                        $CName = "AnonymousModules"
+                    }
+                }
+                $CName
+            } else {
+                "AnonymousScripts"
+            }
+        }
+    }
+
+    if(!$Name) {
+        [String]$Name = $(if($Module) { $Module.Name } <# else { ($CallStack)[0].InvocationInfo.MyCommand.Name } #>)
+    }
+
+    if(!$DefaultPath -and $Module) {
+        [String]$DefaultPath = $(if($Module) { Join-Path $Module.ModuleBase Configuration.psd1 })
+    }
+}
+
 
 function Get-StoragePath {
     #.Synopsis
@@ -43,7 +147,8 @@ function Get-StoragePath {
     [CmdletBinding(DefaultParameterSetName = '__ModuleInfo')]
     param(
         # The scope to save at, defaults to Enterprise (which returns a path in "RoamingData")
-        [Security.PolicyLevelType]$Scope = "Enterprise",
+        [ValidateSet("User", "Machine", "Enterprise")]
+        [string]$Scope = "Enterprise",
 
         # A callstack. You should not ever pass this.
         # It is used to calculate the defaults for all the other parameters.
@@ -52,45 +157,17 @@ function Get-StoragePath {
 
         # The Module you're importing configuration for
         [Parameter(ParameterSetName = "__ModuleInfo", ValueFromPipeline = $true)]
-        [System.Management.Automation.PSModuleInfo]$Module = $(
-            $mi = ($CallStack)[0].InvocationInfo.MyCommand.Module
-            if($mi -and $mi.ExportedCommands.Count -eq 0) {
-                if($mi2 = Get-Module $mi.ModuleBase -ListAvailable | Where-Object Name -eq $mi.Name | Where-Object ExportedCommands | Select-Object -First 1) {
-                   return $mi2
-                }
-            }
-            return $mi
-        ),
+        [System.Management.Automation.PSModuleInfo]$Module,
 
         # An optional module qualifier (by default, this is blank)
         [Parameter(ParameterSetName = "ManualOverride", Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [Alias("Author")]
-        [String]$CompanyName = $(
-            if($Module){
-                $Name = $Module.CompanyName -replace "[$([Regex]::Escape(-join[IO.Path]::GetInvalidFileNameChars()))]","_"
-                if($Name -eq "Unknown" -or -not $Name) {
-                    $Name = $Module.Author
-                    if($Name -eq "Unknown" -or -not $Name) {
-                        $Name = "AnonymousModules"
-                    }
-                }
-                $Name
-            } else {
-                "AnonymousScripts"
-            }
-        ),
+        [String]$CompanyName,
 
         # The name of the module or script
         # Will be used in the returned storage path
         [Parameter(ParameterSetName = "ManualOverride", Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [String]$Name = $(if($Module) { $Module.Name }),
-
-        # The full path (including file name) of a default Configuration.psd1 file
-        # By default, this is expected to be in the same folder as your module manifest, or adjacent to your script file
-        [Parameter(ParameterSetName = "ManualOverride", ValueFromPipelineByPropertyName=$true)]
-        [Alias("ModuleBase")]
-        [String]$DefaultPath = $(if($Module) { Join-Path $Module.ModuleBase Configuration.psd1 }),
-
+        [String]$Name,
 
         # The version for saved settings -- if set, will be used in the returned path
         # NOTE: this is *NOT* calculated from the CallStack
@@ -108,14 +185,13 @@ function Get-StoragePath {
     }
 
     process {
+        . ParameterBinder
+
         if(!$Name) {
+            Write-Error "Empty Name ($Name) in $($PSCmdlet.ParameterSetName): $($PSBoundParameters | Format-List | Out-String)"
             throw "Could not determine the storage name, Get-StoragePath should only be called from inside a script or module."
         }
         $CompanyName = $CompanyName -replace "[$([Regex]::Escape(-join[IO.Path]::GetInvalidFileNameChars()))]","_"
-
-        Write-Verbose "Storage Root: $PathRoot"
-        $PathRoot = Join-Path $PathRoot $Type
-
         if($CompanyName -and $CompanyName -ne "Unknown") {
             $PathRoot = Join-Path $PathRoot $CompanyName
         }
@@ -126,10 +202,13 @@ function Get-StoragePath {
             $PathRoot = Join-Path $PathRoot $Version
         }
 
-        Write-Verbose "Storage Path: $PathRoot"
-
+        if(Test-Path $PathRoot -PathType Leaf) {
+            throw "Cannot create folder for Configuration because there's a file in the way at $PathRoot"
+        }
+        if(!(Test-Path $PathRoot -PathType Container)) {
+            $null = New-Item $PathRoot -Type Directory -Force
+        }
         # Note: avoid using Convert-Path because drives aliases like "TestData:" get converted to a C:\ file system location
-        $null = mkdir $PathRoot -Force
         (Resolve-Path $PathRoot).Path
     }
 }
@@ -140,18 +219,19 @@ function Export-Configuration {
             Exports a configuration object to a specified path.
         .Description
             Exports the configuration object to a file, by default, in the Roaming AppData location
-        
+
             NOTE: this exports the FULL configuration to this file, which will override both defaults and local machine configuration when Import-Configuration is used.
         .Example
             @{UserName = $Env:UserName; LastUpdate = [DateTimeOffset]::Now } | Export-Configuration
-        
+
             This example shows how to use Export-Configuration in your module to cache some data.
-        
+
         .Example
             Get-Module Configuration | Export-Configuration @{UserName = $Env:UserName; LastUpdate = [DateTimeOffset]::Now }
-        
+
             This example shows how to use Export-Configuration to export data for use in a specific module.
     #>
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSShouldProcess","")] # Because PSSCriptAnalyzer team refuses to listen to reason. See bugs:  #194 #283 #521 #608
     [CmdletBinding(DefaultParameterSetName='__ModuleInfo',SupportsShouldProcess)]
     param(
         # Specifies the objects to export as metadata structures.
@@ -160,6 +240,9 @@ function Export-Configuration {
         [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=0)]
         $InputObject,
 
+        # Serialize objects as hashtables
+        [switch]$AsHashtable,
+
         # A callstack. You should not ever pass this.
         # It is used to calculate the defaults for all the other parameters.
         [Parameter(ParameterSetName = "__CallStack")]
@@ -167,55 +250,36 @@ function Export-Configuration {
 
         # The Module you're importing configuration for
         [Parameter(ParameterSetName = "__ModuleInfo", ValueFromPipeline = $true)]
-        [System.Management.Automation.PSModuleInfo]$Module = $(
-            $mi = ($CallStack)[0].InvocationInfo.MyCommand.Module
-            if($mi -and $mi.ExportedCommands.Count -eq 0) {
-                if($mi2 = Get-Module $mi.ModuleBase -ListAvailable | Where-Object Name -eq $mi.Name | Where-Object ExportedCommands | Select-Object -First 1) {
-                   return $mi2
-                }
-            }
-            return $mi
-        ),
+        [System.Management.Automation.PSModuleInfo]$Module,
 
 
         # An optional module qualifier (by default, this is blank)
         [Parameter(ParameterSetName = "ManualOverride", Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [Alias("Author")]
-        [String]$CompanyName = $(
-            if($Module){
-                $Name = $Module.CompanyName -replace "[$([Regex]::Escape(-join[IO.Path]::GetInvalidFileNameChars()))]","_"
-                if($Name -eq "Unknown" -or -not $Name) {
-                    $Name = $Module.Author
-                    if($Name -eq "Unknown" -or -not $Name) {
-                        $Name = "AnonymousModules"
-                    }
-                }
-                $Name
-            } else {
-                "AnonymousScripts"
-            }
-        ),
+        [String]$CompanyName,
 
         # The name of the module or script
         # Will be used in the returned storage path
         [Parameter(ParameterSetName = "ManualOverride", Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [String]$Name = $(if($Module) { $Module.Name }),
+        [String]$Name,
 
         # The full path (including file name) of a default Configuration.psd1 file
         # By default, this is expected to be in the same folder as your module manifest, or adjacent to your script file
         [Parameter(ParameterSetName = "ManualOverride", ValueFromPipelineByPropertyName=$true)]
         [Alias("ModuleBase")]
-        [String]$DefaultPath = $(if($Module) { Join-Path $Module.ModuleBase Configuration.psd1 }),
+        [String]$DefaultPath,
 
         # The scope to save at, defaults to Enterprise (which returns a path in "RoamingData")
         [Parameter(ParameterSetName = "ManualOverride")]
-        [Security.PolicyLevelType]$Scope = "Enterprise",
+        [ValidateSet("User", "Machine", "Enterprise")]
+        [string]$Scope = "Enterprise",
 
         # The version for saved settings -- if set, will be used in the returned path
         # NOTE: this is *NOT* calculated from the CallStack
         [Version]$Version
     )
     process {
+        . ParameterBinder
         if(!$Name) {
             throw "Could not determine the storage name, Get-StoragePath should only be called from inside a script or module."
         }
@@ -232,7 +296,7 @@ function Export-Configuration {
 
         $ConfigurationPath = Join-Path $MachinePath "Configuration.psd1"
 
-        $InputObject | Export-Metadata $ConfigurationPath
+        $InputObject | Export-Metadata $ConfigurationPath -AsHashtable:$AsHashtable
     }
 }
 
@@ -261,44 +325,23 @@ function Import-Configuration {
 
         # The Module you're importing configuration for
         [Parameter(ParameterSetName = "__ModuleInfo", ValueFromPipeline = $true)]
-        [System.Management.Automation.PSModuleInfo]$Module = $(
-            $mi = ($CallStack)[0].InvocationInfo.MyCommand.Module
-            if($mi -and $mi.ExportedCommands.Count -eq 0) {
-                if($mi2 = Get-Module $mi.ModuleBase -ListAvailable | Where-Object Name -eq $mi.Name | Where-Object ExportedCommands | Select-Object -First 1) {
-                   return $mi2
-                }
-            }
-            return $mi
-        ),
+        [System.Management.Automation.PSModuleInfo]$Module,
 
         # An optional module qualifier (by default, this is blank)
         [Parameter(ParameterSetName = "ManualOverride", Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
         [Alias("Author")]
-        [String]$CompanyName = $(
-            if($Module){
-                $Name = $Module.CompanyName -replace "[$([Regex]::Escape(-join[IO.Path]::GetInvalidFileNameChars()))]","_"
-                if($Name -eq "Unknown" -or -not $Name) {
-                    $Name = $Module.Author
-                    if($Name -eq "Unknown" -or -not $Name) {
-                        $Name = "AnonymousModules"
-                    }
-                }
-                $Name
-            } else {
-                "AnonymousScripts"
-            }
-        ),
+        [String]$CompanyName,
 
         # The name of the module or script
         # Will be used in the returned storage path
         [Parameter(ParameterSetName = "ManualOverride", Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
-        [String]$Name = $(if($Module) { $Module.Name }),
+        [String]$Name,
 
         # The full path (including file name) of a default Configuration.psd1 file
         # By default, this is expected to be in the same folder as your module manifest, or adjacent to your script file
         [Parameter(ParameterSetName = "ManualOverride", ValueFromPipelineByPropertyName=$true)]
         [Alias("ModuleBase")]
-        [String]$DefaultPath = $(if($Module) { Join-Path $Module.ModuleBase Configuration.psd1 }),
+        [String]$DefaultPath,
 
         # The version for saved settings -- if set, will be used in the returned path
         # NOTE: this is *never* calculated, if you use version numbers, you must manage them on your own
@@ -309,22 +352,24 @@ function Import-Configuration {
         [Switch]$Ordered
     )
     begin {
-        Write-Verbose "Module Name $Name"
+        # Write-Debug "Import-Configuration for module $Name"
     }
     process {
+        . ParameterBinder
+
         if(!$Name) {
             throw "Could not determine the configuration name. When you are not calling Import-Configuration from a module, you must specify the -Author and -Name parameter"
-        }        
+        }
 
-        if(Test-Path $DefaultPath -Type Container) {
+        if($DefaultPath -and (Test-Path $DefaultPath -Type Container)) {
             $DefaultPath = Join-Path $DefaultPath Configuration.psd1
         }
 
-        Write-Verbose "PSBoundParameters $($PSBoundParameters | Out-String)"
-        $Configuration = if(Test-Path $DefaultPath) {
+        $Configuration = if($DefaultPath -and (Test-Path $DefaultPath)) {
                              Import-Metadata $DefaultPath -ErrorAction Ignore -Ordered:$Ordered
                          } else { @{} }
-        Write-Verbose "Module ($DefaultPath)`n$($Configuration | Out-String)"
+        # Write-Debug "Module Configuration: ($DefaultPath)`n$($Configuration | Out-String)"
+
 
         $Parameters = @{
             CompanyName = $CompanyName
@@ -339,7 +384,7 @@ function Import-Configuration {
         $Machine = if(Test-Path $MachinePath) {
                     Import-Metadata $MachinePath -ErrorAction Ignore -Ordered:$Ordered
                 } else { @{} }
-        Write-Verbose "Machine ($MachinePath)`n$($Machine | Out-String)"
+        # Write-Debug "Machine Configuration: ($MachinePath)`n$($Machine | Out-String)"
 
 
         $EnterprisePath = Get-StoragePath @Parameters -Scope Enterprise
@@ -347,25 +392,26 @@ function Import-Configuration {
         $Enterprise = if(Test-Path $EnterprisePath) {
                     Import-Metadata $EnterprisePath -ErrorAction Ignore -Ordered:$Ordered
                 } else { @{} }
-        Write-Verbose "Enterprise ($EnterprisePath)`n$($Enterprise | Out-String)"
+        # Write-Debug "Enterprise Configuration: ($EnterprisePath)`n$($Enterprise | Out-String)"
 
         $LocalUserPath = Get-StoragePath @Parameters -Scope User
         $LocalUserPath = Join-Path $LocalUserPath Configuration.psd1
         $LocalUser = if(Test-Path $LocalUserPath) {
                     Import-Metadata $LocalUserPath -ErrorAction Ignore -Ordered:$Ordered
                 } else { @{} }
-        Write-Verbose "LocalUser ($LocalUserPath)`n$($LocalUser | Out-String)"
+        # Write-Debug "LocalUser Configuration: ($LocalUserPath)`n$($LocalUser | Out-String)"
 
         $Configuration | Update-Object $Machine |
                          Update-Object $Enterprise |
                          Update-Object $LocalUser
     }
 }
+
 # SIG # Begin signature block
-# MIIXxAYJKoZIhvcNAQcCoIIXtTCCF7ECAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# MIIXzgYJKoZIhvcNAQcCoIIXvzCCF7sCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU+EnruXvfkbzbaYKyiaeMo3zx
-# RXGgghL3MIID7jCCA1egAwIBAgIQfpPr+3zGTlnqS5p31Ab8OzANBgkqhkiG9w0B
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU+v23TrSyxljmRS1nGoGoUa/L
+# dZ2gghMBMIID7jCCA1egAwIBAgIQfpPr+3zGTlnqS5p31Ab8OzANBgkqhkiG9w0B
 # AQUFADCBizELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTEUMBIG
 # A1UEBxMLRHVyYmFudmlsbGUxDzANBgNVBAoTBlRoYXd0ZTEdMBsGA1UECxMUVGhh
 # d3RlIENlcnRpZmljYXRpb24xHzAdBgNVBAMTFlRoYXd0ZSBUaW1lc3RhbXBpbmcg
@@ -411,82 +457,83 @@ function Import-Configuration {
 # EfzdXHZuT14ORUZBbg2w6jiasTraCXEQ/Bx5tIB7rGn0/Zy2DBYr8X9bCT2bW+IW
 # yhOBbQAuOA2oKY8s4bL0WqkBrxWcLC9JG9siu8P+eJRRw4axgohd8D20UaF5Mysu
 # e7ncIAkTcetqGVvP6KUwVyyJST+5z3/Jvz4iaGNTmr1pdKzFHTx/kuDDvBzYBHUw
-# ggUmMIIEDqADAgECAhACXbrxBhFj1/jVxh2rtd9BMA0GCSqGSIb3DQEBCwUAMHIx
+# ggUwMIIEGKADAgECAhAECRgbX9W7ZnVTQ7VvlVAIMA0GCSqGSIb3DQEBCwUAMGUx
 # CzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3
-# dy5kaWdpY2VydC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNIQTIgQXNzdXJlZCBJ
-# RCBDb2RlIFNpZ25pbmcgQ0EwHhcNMTUwNTA0MDAwMDAwWhcNMTYwNTExMTIwMDAw
-# WjBtMQswCQYDVQQGEwJVUzERMA8GA1UECBMITmV3IFlvcmsxFzAVBgNVBAcTDldl
-# c3QgSGVucmlldHRhMRgwFgYDVQQKEw9Kb2VsIEguIEJlbm5ldHQxGDAWBgNVBAMT
-# D0pvZWwgSC4gQmVubmV0dDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-# AJfRKhfiDjMovUELYgagznWf+HFcDENk118Y/K6UkQDwKmVyVOvDyaVefjSmZZcV
-# NZqqYpm9d/Iajf2dauyC3pg3oay8KfXAADLHgbmbvYDc5zGuUNsTzMUOKlp9h13c
-# qsg898JwpRpI659xCQgJjZ6V83QJh+wnHvjA9ojjA4xkbwhGp4Eit6B/uGthEA11
-# IHcFcXeNI3fIkbwWiAw7ZoFtSLm688NFhxwm+JH3Xwj0HxuezsmU0Yc/po31CoST
-# nGPVN8wppHYZ0GfPwuNK4TwaI0FEXxwdwB+mEduxa5e4zB8DyUZByFW338XkGfc1
-# qcJJ+WTyNKFN7saevhwp02cCAwEAAaOCAbswggG3MB8GA1UdIwQYMBaAFFrEuXsq
-# CqOl6nEDwGD5LfZldQ5YMB0GA1UdDgQWBBQV0aryV1RTeVOG+wlr2Z2bOVFAbTAO
-# BgNVHQ8BAf8EBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwMwdwYDVR0fBHAwbjA1
-# oDOgMYYvaHR0cDovL2NybDMuZGlnaWNlcnQuY29tL3NoYTItYXNzdXJlZC1jcy1n
-# MS5jcmwwNaAzoDGGL2h0dHA6Ly9jcmw0LmRpZ2ljZXJ0LmNvbS9zaGEyLWFzc3Vy
-# ZWQtY3MtZzEuY3JsMEIGA1UdIAQ7MDkwNwYJYIZIAYb9bAMBMCowKAYIKwYBBQUH
-# AgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwgYQGCCsGAQUFBwEBBHgw
-# djAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tME4GCCsGAQUF
-# BzAChkJodHRwOi8vY2FjZXJ0cy5kaWdpY2VydC5jb20vRGlnaUNlcnRTSEEyQXNz
-# dXJlZElEQ29kZVNpZ25pbmdDQS5jcnQwDAYDVR0TAQH/BAIwADANBgkqhkiG9w0B
-# AQsFAAOCAQEAIi5p+6eRu6bMOSwJt9HSBkGbaPZlqKkMd4e6AyKIqCRabyjLISwd
-# i32p8AT7r2oOubFy+R1LmbBMaPXORLLO9N88qxmJfwFSd+ZzfALevANdbGNp9+6A
-# khe3PiR0+eL8ZM5gPJv26OvpYaRebJTfU++T1sS5dYaPAztMNsDzY3krc92O27AS
-# WjTjWeILSryqRHXyj8KQbYyWpnG2gWRibjXi5ofL+BHyJQRET5pZbERvl2l9Bo4Z
-# st8CM9EQDrdG2vhELNiA6jwenxNPOa6tPkgf8cH8qpGRBVr9yuTMSHS1p9Rc+ybx
-# FSKiZkOw8iCR6ZQIeKkSVdwFf8V+HHPrETCCBTAwggQYoAMCAQICEAQJGBtf1btm
-# dVNDtW+VUAgwDQYJKoZIhvcNAQELBQAwZTELMAkGA1UEBhMCVVMxFTATBgNVBAoT
-# DERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTEkMCIGA1UE
-# AxMbRGlnaUNlcnQgQXNzdXJlZCBJRCBSb290IENBMB4XDTEzMTAyMjEyMDAwMFoX
-# DTI4MTAyMjEyMDAwMFowcjELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0
-# IEluYzEZMBcGA1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTExMC8GA1UEAxMoRGlnaUNl
-# cnQgU0hBMiBBc3N1cmVkIElEIENvZGUgU2lnbmluZyBDQTCCASIwDQYJKoZIhvcN
-# AQEBBQADggEPADCCAQoCggEBAPjTsxx/DhGvZ3cH0wsxSRnP0PtFmbE620T1f+Wo
-# ndsy13Hqdp0FLreP+pJDwKX5idQ3Gde2qvCchqXYJawOeSg6funRZ9PG+yknx9N7
-# I5TkkSOWkHeC+aGEI2YSVDNQdLEoJrskacLCUvIUZ4qJRdQtoaPpiCwgla4cSocI
-# 3wz14k1gGL6qxLKucDFmM3E+rHCiq85/6XzLkqHlOzEcz+ryCuRXu0q16XTmK/5s
-# y350OTYNkO/ktU6kqepqCquE86xnTrXE94zRICUj6whkPlKWwfIPEvTFjg/Bougs
-# UfdzvL2FsWKDc0GCB+Q4i2pzINAPZHM8np+mM6n9Gd8lk9ECAwEAAaOCAc0wggHJ
-# MBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgGGMBMGA1UdJQQMMAoG
-# CCsGAQUFBwMDMHkGCCsGAQUFBwEBBG0wazAkBggrBgEFBQcwAYYYaHR0cDovL29j
-# c3AuZGlnaWNlcnQuY29tMEMGCCsGAQUFBzAChjdodHRwOi8vY2FjZXJ0cy5kaWdp
-# Y2VydC5jb20vRGlnaUNlcnRBc3N1cmVkSURSb290Q0EuY3J0MIGBBgNVHR8EejB4
-# MDqgOKA2hjRodHRwOi8vY3JsNC5kaWdpY2VydC5jb20vRGlnaUNlcnRBc3N1cmVk
-# SURSb290Q0EuY3JsMDqgOKA2hjRodHRwOi8vY3JsMy5kaWdpY2VydC5jb20vRGln
-# aUNlcnRBc3N1cmVkSURSb290Q0EuY3JsME8GA1UdIARIMEYwOAYKYIZIAYb9bAAC
-# BDAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy5kaWdpY2VydC5jb20vQ1BTMAoG
-# CGCGSAGG/WwDMB0GA1UdDgQWBBRaxLl7KgqjpepxA8Bg+S32ZXUOWDAfBgNVHSME
-# GDAWgBRF66Kv9JLLgjEtUYunpyGd823IDzANBgkqhkiG9w0BAQsFAAOCAQEAPuwN
-# WiSz8yLRFcgsfCUpdqgdXRwtOhrE7zBh134LYP3DPQ/Er4v97yrfIFU3sOH20ZJ1
-# D1G0bqWOWuJeJIFOEKTuP3GOYw4TS63XX0R58zYUBor3nEZOXP+QsRsHDpEV+7qv
-# tVHCjSSuJMbHJyqhKSgaOnEoAjwukaPAJRHinBRHoXpoaK+bp1wgXNlxsQyPu6j4
-# xRJon89Ay0BEpRPw5mQMJQhCMrI2iiQC/i9yfhzXSUWW6Fkd6fp0ZGuy62ZD2rOw
-# jNXpDd32ASDOmTFjPQgaGLOBm0/GkxAG/AeB+ova+YJJ92JuoVP6EpQYhS6Skepo
-# bEQysmah5xikmmRR7zGCBDcwggQzAgEBMIGGMHIxCzAJBgNVBAYTAlVTMRUwEwYD
-# VQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xMTAv
-# BgNVBAMTKERpZ2lDZXJ0IFNIQTIgQXNzdXJlZCBJRCBDb2RlIFNpZ25pbmcgQ0EC
-# EAJduvEGEWPX+NXGHau130EwCQYFKw4DAhoFAKB4MBgGCisGAQQBgjcCAQwxCjAI
-# oAKAAKECgAAwGQYJKoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIB
-# CzEOMAwGCisGAQQBgjcCARUwIwYJKoZIhvcNAQkEMRYEFClF/dcon4cieh9oF6XU
-# lIAzjU5YMA0GCSqGSIb3DQEBAQUABIIBADIUB0CCRuGt9gdQCThQvGl03IIVylpd
-# bnRemNrjwgl1ejy6YiGM8mS92I5SXQzLZ8JMpRLryVsN+d3ZrQQfpv2l6Ojs8Y+d
-# +GDeeP75k1mwInPXjhTNMUYiiuZEJYukGscRaDtVWkT4izsKd5Zx3u4FD5Flxz0o
-# DIL2h8YJTdAhC9z8cAek8zgGeVweZBVK8wmdiWtDytpSEA8A//NGnmT/I3UAHwrk
-# qwyQaAH+tQMio//nUh0eJFtWFTuovVwph0N4dwUK8QwxH8Xk8K+dWTlsx5qcYayH
-# 9gQO87cX+RSYzE7OElzGkLh3sn6noT1cUk12GWiqs9GI7RJ6W9+KyNOhggILMIIC
-# BwYJKoZIhvcNAQkGMYIB+DCCAfQCAQEwcjBeMQswCQYDVQQGEwJVUzEdMBsGA1UE
-# ChMUU3ltYW50ZWMgQ29ycG9yYXRpb24xMDAuBgNVBAMTJ1N5bWFudGVjIFRpbWUg
-# U3RhbXBpbmcgU2VydmljZXMgQ0EgLSBHMgIQDs/0OMj+vzVuBNhqmBsaUDAJBgUr
-# DgMCGgUAoF0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUx
-# DxcNMTYwNTExMDU0OTE0WjAjBgkqhkiG9w0BCQQxFgQUWF19VV6gPwU0iB7/eTZB
-# +FjG3xgwDQYJKoZIhvcNAQEBBQAEggEAD8KscxX094NtJZPZ35f1l9PtdgWnhmv6
-# Z3WeOo71wXOH/0g5b9gCTptteg+LpfjOxDTspXsiyQ7+XIlKa4cYw+fhA0PiRGnX
-# p2R/JXzkrcJWMw2RGtKDYdE/PdtNfiBO/uvf4a4VwiBSBO9Rjw5/ohNraJSgMR11
-# 26eaqveecrIkhsrpswzFYRtkKuK1wZe8GzvIVi/SP2j7L0iA7rfiLK9/4Sl3QMuN
-# hyObkjXFsjpzz6mTU6F0AoMgJM2KmpHHC8oxDjJqFAB3IzW4vFCnLmnlwzZX5QP6
-# GWY5yabKQwi3PKfW/Az43QTtRwpuZ3ebmTi9HAaXw1MI8q9WZCrHsQ==
+# dy5kaWdpY2VydC5jb20xJDAiBgNVBAMTG0RpZ2lDZXJ0IEFzc3VyZWQgSUQgUm9v
+# dCBDQTAeFw0xMzEwMjIxMjAwMDBaFw0yODEwMjIxMjAwMDBaMHIxCzAJBgNVBAYT
+# AlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2Vy
+# dC5jb20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNIQTIgQXNzdXJlZCBJRCBDb2RlIFNp
+# Z25pbmcgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD407Mcfw4R
+# r2d3B9MLMUkZz9D7RZmxOttE9X/lqJ3bMtdx6nadBS63j/qSQ8Cl+YnUNxnXtqrw
+# nIal2CWsDnkoOn7p0WfTxvspJ8fTeyOU5JEjlpB3gvmhhCNmElQzUHSxKCa7JGnC
+# wlLyFGeKiUXULaGj6YgsIJWuHEqHCN8M9eJNYBi+qsSyrnAxZjNxPqxwoqvOf+l8
+# y5Kh5TsxHM/q8grkV7tKtel05iv+bMt+dDk2DZDv5LVOpKnqagqrhPOsZ061xPeM
+# 0SAlI+sIZD5SlsHyDxL0xY4PwaLoLFH3c7y9hbFig3NBggfkOItqcyDQD2RzPJ6f
+# pjOp/RnfJZPRAgMBAAGjggHNMIIByTASBgNVHRMBAf8ECDAGAQH/AgEAMA4GA1Ud
+# DwEB/wQEAwIBhjATBgNVHSUEDDAKBggrBgEFBQcDAzB5BggrBgEFBQcBAQRtMGsw
+# JAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBDBggrBgEFBQcw
+# AoY3aHR0cDovL2NhY2VydHMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0QXNzdXJlZElE
+# Um9vdENBLmNydDCBgQYDVR0fBHoweDA6oDigNoY0aHR0cDovL2NybDQuZGlnaWNl
+# cnQuY29tL0RpZ2lDZXJ0QXNzdXJlZElEUm9vdENBLmNybDA6oDigNoY0aHR0cDov
+# L2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0QXNzdXJlZElEUm9vdENBLmNybDBP
+# BgNVHSAESDBGMDgGCmCGSAGG/WwAAgQwKjAoBggrBgEFBQcCARYcaHR0cHM6Ly93
+# d3cuZGlnaWNlcnQuY29tL0NQUzAKBghghkgBhv1sAzAdBgNVHQ4EFgQUWsS5eyoK
+# o6XqcQPAYPkt9mV1DlgwHwYDVR0jBBgwFoAUReuir/SSy4IxLVGLp6chnfNtyA8w
+# DQYJKoZIhvcNAQELBQADggEBAD7sDVoks/Mi0RXILHwlKXaoHV0cLToaxO8wYdd+
+# C2D9wz0PxK+L/e8q3yBVN7Dh9tGSdQ9RtG6ljlriXiSBThCk7j9xjmMOE0ut119E
+# efM2FAaK95xGTlz/kLEbBw6RFfu6r7VRwo0kriTGxycqoSkoGjpxKAI8LpGjwCUR
+# 4pwUR6F6aGivm6dcIFzZcbEMj7uo+MUSaJ/PQMtARKUT8OZkDCUIQjKyNookAv4v
+# cn4c10lFluhZHen6dGRrsutmQ9qzsIzV6Q3d9gEgzpkxYz0IGhizgZtPxpMQBvwH
+# gfqL2vmCSfdibqFT+hKUGIUukpHqaGxEMrJmoecYpJpkUe8wggUwMIIEGKADAgEC
+# AhAFmB+6PJIk/oqP7b4FPfHsMA0GCSqGSIb3DQEBCwUAMHIxCzAJBgNVBAYTAlVT
+# MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
+# b20xMTAvBgNVBAMTKERpZ2lDZXJ0IFNIQTIgQXNzdXJlZCBJRCBDb2RlIFNpZ25p
+# bmcgQ0EwHhcNMTcwNjE0MDAwMDAwWhcNMTgwNjAxMTIwMDAwWjBtMQswCQYDVQQG
+# EwJVUzERMA8GA1UECBMITmV3IFlvcmsxFzAVBgNVBAcTDldlc3QgSGVucmlldHRh
+# MRgwFgYDVQQKEw9Kb2VsIEguIEJlbm5ldHQxGDAWBgNVBAMTD0pvZWwgSC4gQmVu
+# bmV0dDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANALmLHevB7LvTmI
+# p2oVErnz915fP1JUKoC+/5BRWUtAGooxg95jxX8+qT1yc02ZnkK7u1UyM0Mfs3b8
+# MzhSqe5OkkQeT2RHrGe52+0/0ZWD68pvUBZoMQxrAnWJETjFO6IoXPKmoXN3zzpF
+# +5s/UIbNGI5mdiN4v4F93Yaajzu2ymsJsXK6NgRh/AUbUzUlefpOas+o06wT0vqp
+# LniGWw26321zJo//2QEo5PBrJvDDDIBBN6Xn5A2ww6v6fH2KGk2qf4vpr58rhDIH
+# fLOHLg9s35effaktygUMQBCFmxOAbPLKWId8n5+O7zbMfKw3qxqCp2QeXhjkIh9v
+# ETIX9pECAwEAAaOCAcUwggHBMB8GA1UdIwQYMBaAFFrEuXsqCqOl6nEDwGD5LfZl
+# dQ5YMB0GA1UdDgQWBBQ8xh3xoTXbMfJUSyFBfPsrxoD8XzAOBgNVHQ8BAf8EBAMC
+# B4AwEwYDVR0lBAwwCgYIKwYBBQUHAwMwdwYDVR0fBHAwbjA1oDOgMYYvaHR0cDov
+# L2NybDMuZGlnaWNlcnQuY29tL3NoYTItYXNzdXJlZC1jcy1nMS5jcmwwNaAzoDGG
+# L2h0dHA6Ly9jcmw0LmRpZ2ljZXJ0LmNvbS9zaGEyLWFzc3VyZWQtY3MtZzEuY3Js
+# MEwGA1UdIARFMEMwNwYJYIZIAYb9bAMBMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8v
+# d3d3LmRpZ2ljZXJ0LmNvbS9DUFMwCAYGZ4EMAQQBMIGEBggrBgEFBQcBAQR4MHYw
+# JAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0LmNvbTBOBggrBgEFBQcw
+# AoZCaHR0cDovL2NhY2VydHMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0U0hBMkFzc3Vy
+# ZWRJRENvZGVTaWduaW5nQ0EuY3J0MAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEL
+# BQADggEBAGvlfIiin9JAyL16oeCNApnAWLfZpUBob4D+XLzdRJXidPq/pvNkE9Rg
+# pRZFaWs30f2WPhWeqCpSCahoHzFsD5S9mOzsGTXsT+EdjAS0yEe1t9LfMvEC/pI3
+# aBQJeJ/DdgpTMUEUJSvddc0P0NbDJ6TJC/niEMOJ8XvsfF75J4YVJ10yVNahbAuU
+# MrRrRLe30pW74MRv1s7SKxwPmLhcsMQuK0mWGERtGYMwDHwW0ZdRHKNDGHRsl0Wh
+# DS1P8+JRpE3eNFPcO17yiOfKDnVh+/1AOg7QopD6R6+P9rErorebsvW680s4WTlr
+# hDcMsTOX0js2KFF6uT4nSojS4GNlSxExggQ3MIIEMwIBATCBhjByMQswCQYDVQQG
+# EwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNl
+# cnQuY29tMTEwLwYDVQQDEyhEaWdpQ2VydCBTSEEyIEFzc3VyZWQgSUQgQ29kZSBT
+# aWduaW5nIENBAhAFmB+6PJIk/oqP7b4FPfHsMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRff6gf
+# OQ0leRDSAO4EvRLYAQj6PjANBgkqhkiG9w0BAQEFAASCAQDIgMMdr1Tog4z6eOhy
+# 8WD25s4TVDh4IN8WD0c+gW8/+BpMcQx8JPmKZ07AjF3dxdWWTXTK7wa0ufTKsmae
+# FDVwO0Tb4D8AhUlvpyAWXQVFP+Dg11zNpml0WVousFuynQ+b5lzzzYmMNkCA1PqN
+# /LbIAOmSILvW+NduZwk/o30OzLQQqNzPfMrgpl/Upb5M/aO8NmjR2lLP2FAKF6nc
+# /SQHgqArtSRptKItYvEEV3YnLcghkFbl9+RKAzNhU1NTibJgFkolMuIV3Vl7goCc
+# vkklXxaiB3Eyf51z/nbkma6exK7+irs0Jz55nAIWAD/xAuA4wxwvC6kvZHc3KxsJ
+# 5+7ToYICCzCCAgcGCSqGSIb3DQEJBjGCAfgwggH0AgEBMHIwXjELMAkGA1UEBhMC
+# VVMxHTAbBgNVBAoTFFN5bWFudGVjIENvcnBvcmF0aW9uMTAwLgYDVQQDEydTeW1h
+# bnRlYyBUaW1lIFN0YW1waW5nIFNlcnZpY2VzIENBIC0gRzICEA7P9DjI/r81bgTY
+# apgbGlAwCQYFKw4DAhoFAKBdMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJ
+# KoZIhvcNAQkFMQ8XDTE3MTExMzA2MjQ1MFowIwYJKoZIhvcNAQkEMRYEFAPGKEOH
+# vsrG4ovgPvmQg7gdwOpTMA0GCSqGSIb3DQEBAQUABIIBAHt0T3/UVC7fwSz+VUNc
+# Jllt+IiA81ojwq2SBmOrSAZYor+TCgQ0woNWgUqCrF++7m5xfRV34ymPdIeVqjF9
+# Te98qdgzQnrKg2rIL4Q8F8YXWR57SjuLxMhmzz79iKrG6MlERCX0LTdGBoRgSrf5
+# JMWq6TBUaS57up5p5Hv2pL9bEPGI9g7GtncLf8N3G44BhDC7oIN6XLGyPSDgXBs3
+# tifoXGO6ZMm05n9XjJB55QDQmfM4G/EMbEFdxII7hJCdXtdapw6kqRb84b+k9zta
+# vuUjXtwgDIM4JsUcyEajhNhMxUSJkcPIAyAdW4d8203AwvgCXq58WplhtEeySXA2
+# vGo=
 # SIG # End signature block
