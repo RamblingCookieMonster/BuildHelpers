@@ -128,12 +128,13 @@ function Get-BuildVariables {
     # Find the git branch
     $BuildBranch = switch ($Environment.Name)
     {
-        'APPVEYOR_REPO_BRANCH'         { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_BUILD_REF_NAME'            { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
-        'GIT_BRANCH'                   { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
-        'BUILD_SOURCEBRANCHNAME'       { (Get-Item -Path "ENV:$_").Value; break } # VSTS
-        'BAMBOO_REPOSITORY_GIT_BRANCH' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
-        'TRAVIS_BRANCH'                { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
+        'APPVEYOR_REPO_BRANCH'          { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
+        'CI_COMMIT_REF_NAME'            { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+
+        'CI_BUILD_REF_NAME'             { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 8.x
+        'GIT_BRANCH'                    { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
+        'BUILD_SOURCEBRANCHNAME'        { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'BAMBOO_REPOSITORY_GIT_BRANCH'  { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
+        'TRAVIS_BRANCH'                 { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
     }
     if(-not $BuildBranch)
     {
@@ -152,12 +153,19 @@ function Get-BuildVariables {
             "$env:APPVEYOR_REPO_COMMIT_MESSAGE $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED"
             break
         }
+        'CI_COMMIT_SHA' {
+            if($WeCanGit)
+            {
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                break
+            } # Gitlab 9.0+ - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
+        }
         'CI_BUILD_REF' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
-            } # Gitlab - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
+            } # Gitlab 8.x - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
         'GIT_COMMIT' {
             if($WeCanGit)
@@ -204,7 +212,8 @@ function Get-BuildVariables {
     $BuildNumber = switch ($Environment.Name)
     {
         'APPVEYOR_BUILD_NUMBER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_BUILD_ID'           { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
+        'CI_JOB_ID'             { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+ - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
+        'CI_BUILD_ID'           { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 8.x - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
         'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
         'BAMBOO_BUILDNUMBER'    { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
