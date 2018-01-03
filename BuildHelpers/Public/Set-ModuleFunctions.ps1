@@ -65,7 +65,7 @@ function Set-ModuleFunctions {
 
         if(-not $FunctionsToExport)
         {
-            $FunctionsToExport = @( $Module.ExportedCommands.Keys )
+            $FunctionsToExport = @( $Module.ExportedFunctions.Keys )
         }
 
         $Parent = $Module.ModuleBase

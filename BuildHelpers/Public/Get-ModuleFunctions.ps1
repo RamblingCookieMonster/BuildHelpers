@@ -52,7 +52,7 @@ function Get-ModuleFunctions {
 
         }).AddParameters($Params)
 
-        ( $PowerShell.Invoke() ).ExportedCommands.Keys
+        ( $PowerShell.Invoke() ).ExportedFunctions.Keys
 
         $PowerShell.Dispose()
     }
