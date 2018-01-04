@@ -41,84 +41,73 @@
     #>
     [cmdletbinding()]
     param(
-        [parameter(ValueFromPipelineByPropertyName=$True)]
+        [parameter(ValueFromPipelineByPropertyName = $True)]
         [string[]]$Name,
 
-        [parameter(ValueFromPipelineByPropertyName=$True)]
+        [parameter(ValueFromPipelineByPropertyName = $True)]
         [ValidateSet('Module', 'Script')]
         [string]$Type = 'Module',
 
         [string]$Repository = 'PSGallery'
     )
-    Process
-    {
-        foreach($Item in $Name)
-        {
-            Try
-            {
+    Begin {
+        Write-Warning "DEPRECATED: Please use Get-NextNugetPackageVersion"
+    }
+    Process {
+        foreach ($Item in $Name) {
+            Try {
                 $Existing = $null
-                if($Type -eq 'Module')
-                {
+                if ($Type -eq 'Module') {
                     $Existing = Find-Module -Name $Item -Repository $Repository -ErrorAction Stop
                 }
-                else # Script
-                {
+                else { 
+                    # Script
                     $Existing = Find-Script -Name $Item -Repository $Repository -ErrorAction Stop
                 }
             }
-            Catch
-            {
-                if($_ -match "No match was found for the specified search criteria")
-                {
-                    New-Object System.Version (0,0,1)
+            Catch {
+                if ($_ -match "No match was found for the specified search criteria") {
+                    New-Object System.Version (0, 0, 1)
                 }
-                else
-                {
+                else {
                     Write-Error $_
                 }
                 continue
             }
 
-            if($Existing.count -gt 1)
-            {
+            if ($Existing.count -gt 1) {
                 Write-Error "Found more than one $Type matching '$Item': Did you use a wildcard?"
                 continue
             }
-            elseif($Existing.count -eq 0)
-            {
+            elseif ($Existing.count -eq 0) {
                 Write-Verbose "Found no $Type matching '$Item'"
-                New-Object System.Version (0,0,1)
+                New-Object System.Version (0, 0, 1)
                 continue
             }
-            else
-            {
+            else {
                 $Version = $Existing.Version
             }
 
             # using revision
-            if($Version.Revision -ge 0)
-            {
-                $Build = if($Version.Build -le 0) { 0 } else { $Version.Build }
-                $Revision = if($Version.Revision -le 0) { 1 } else { $Version.Revision + 1 }
+            if ($Version.Revision -ge 0) {
+                $Build = if ($Version.Build -le 0) { 0 } else { $Version.Build }
+                $Revision = if ($Version.Revision -le 0) { 1 } else { $Version.Revision + 1 }
                 New-Object System.Version ($Version.Major, $Version.Minor, $Build, $Revision)
             }
             # using build
-            elseif($Version.Build -ge 0)
-            {
-                $Build = if($Version.Build -le 0) { 1 } else { $Version.Build + 1 }
+            elseif ($Version.Build -ge 0) {
+                $Build = if ($Version.Build -le 0) { 1 } else { $Version.Build + 1 }
                 New-Object System.Version ($Version.Major, $Version.Minor, $Build)
             }
             # using minor. wat?
-            elseif($Version.Minor -ge 0)
-            {
-                $Minor = if($Version.Minor -le 0) { 1 } else { $Version.Minor + 1 }
+            elseif ($Version.Minor -ge 0) {
+                $Minor = if ($Version.Minor -le 0) { 1 } else { $Version.Minor + 1 }
                 New-Object System.Version ($Version.Major, $Minor)
             }
             # using major only. I don't even.
-            else
-            {
+            else {
                 New-Object System.Version ($Version.Major + 1, 0)
             }
-        }
-    }
+        }   
+}
 }

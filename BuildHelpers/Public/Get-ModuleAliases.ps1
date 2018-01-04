@@ -1,13 +1,13 @@
-function Get-ModuleFunctions {
+function Get-ModuleAliases {
     <#
     .SYNOPSIS
-        List functions imported by a module
+        List aliases imported by a module
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        List functions imported by a module. Note that this actually imports the module.
+        List aliases imported by a module. Note that this actually imports the module.
 
     .PARAMETER Name
         Name or path to module to inspect.  Defaults to ProjectPath\ProjectName
@@ -16,7 +16,7 @@ function Get-ModuleFunctions {
         We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-        Get-ModuleFunctions
+        Get-ModuleAliases
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -52,7 +52,7 @@ function Get-ModuleFunctions {
 
         }).AddParameters($Params)
 
-        ( $PowerShell.Invoke() ).ExportedFunctions.Keys
+        ( $PowerShell.Invoke() ).ExportedAliases.Keys
 
         $PowerShell.Dispose()
     }
