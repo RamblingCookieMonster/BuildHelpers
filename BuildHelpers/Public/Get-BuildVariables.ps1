@@ -23,10 +23,10 @@ function Get-BuildVariables {
                 GoCD
                 Travis CI
 
-            For Teamcity the VCS Checkout Mode needs to be to checkout files on agent. 
+            For Teamcity the VCS Checkout Mode needs to be to checkout files on agent.
             Since TeamCity 10.0, this is the default setting for the newly created build configurations.
-            
-            Git needs to be available on the agent for this.  
+
+            Git needs to be available on the agent for this.
 
             Produces:
                 BuildSystem: Build system we're running under
@@ -77,7 +77,7 @@ function Get-BuildVariables {
     if(!$PSboundParameters.ContainsKey('GitPath')) {
         $GitPath = (Get-Command $GitPath)[0].Path
     }
-    
+
     $WeCanGit = ( (Test-Path $( Join-Path $Path .git )) -and (Get-Command $GitPath -ErrorAction SilentlyContinue) )
     if($WeCanGit)
     {
@@ -150,7 +150,7 @@ function Get-BuildVariables {
     $CommitMessage = switch ($Environment.Name)
     {
         'APPVEYOR_REPO_COMMIT_MESSAGE' {
-            "$env:APPVEYOR_REPO_COMMIT_MESSAGE $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED"
+            "$env:APPVEYOR_REPO_COMMIT_MESSAGE $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED".TrimEnd()
             break
         }
         'CI_COMMIT_SHA' {
