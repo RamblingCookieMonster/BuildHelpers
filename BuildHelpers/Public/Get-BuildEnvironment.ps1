@@ -70,7 +70,7 @@ function Get-BuildEnvironment {
         [string]$BuildOutput = '$ProjectPath\BuildOutput',
 
         [validatescript({
-            if(-not (Get-Command $_))
+            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
             {
                 throw "Could not find command at GitPath [$_]"
             }
@@ -115,5 +115,5 @@ function Get-BuildEnvironment {
     }
     if($As -eq 'hashtable') {
         return $BuildHelpersVariables
-    }  
+    }
 }

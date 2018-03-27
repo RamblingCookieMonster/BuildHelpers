@@ -98,7 +98,7 @@ function Set-BuildEnvironment {
         [switch]$Passthru,
 
         [validatescript({
-            if(-not (Get-Command $_))
+            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
             {
                 throw "Could not find command at GitPath [$_]"
             }

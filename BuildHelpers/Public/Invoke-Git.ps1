@@ -71,7 +71,7 @@
         $Split = "`n",
         $Raw,
         [validatescript({
-            if(-not (Get-Command $_))
+            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
             {
                 throw "Could not find command at GitPath [$_]"
             }
@@ -84,7 +84,7 @@
     # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
     if(!$PSBoundParameters.ContainsKey('GitPath')) {
-        $GitPath = (Get-Command $GitPath)[0].Path
+        $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
     }
     $pinfo.FileName = $GitPath
     $Command = $GitPath

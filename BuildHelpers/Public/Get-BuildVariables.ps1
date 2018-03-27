@@ -63,7 +63,7 @@ function Get-BuildVariables {
     param(
         $Path = $PWD.Path,
         [validatescript({
-            if(-not (Get-Command $_))
+            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
             {
                 throw "Could not find command at GitPath [$_]"
             }
@@ -75,7 +75,7 @@ function Get-BuildVariables {
     $Path = ( Resolve-Path $Path ).Path
     $Environment = Get-Item ENV:
     if(!$PSboundParameters.ContainsKey('GitPath')) {
-        $GitPath = (Get-Command $GitPath)[0].Path
+        $GitPath = (Get-Command $GitPath -ErrorAction SilentlyContinue)[0].Path
     }
 
     $WeCanGit = ( (Test-Path $( Join-Path $Path .git )) -and (Get-Command $GitPath -ErrorAction SilentlyContinue) )
