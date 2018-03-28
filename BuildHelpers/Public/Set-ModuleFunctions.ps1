@@ -1,16 +1,16 @@
 function Set-ModuleFunctions {
     <#
     .SYNOPSIS
-        EXPIRIMENTAL: Set FunctionsToExport in a module manifest
+        Set FunctionsToExport in a module manifest
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        EXPIRIMENTAL: Set FunctionsToExport in a module manifest
+        Set FunctionsToExport in a module manifest
 
     .PARAMETER Name
-        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
+        Path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
 
     .NOTES
         Major thanks to Joel Bennett for the code behind working with the psd1
@@ -44,7 +44,7 @@ function Set-ModuleFunctions {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = $Name
+            Name = (Resolve-Path $Name).Path
         }
 
         # Create a runspace, add script to run
@@ -52,8 +52,7 @@ function Set-ModuleFunctions {
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
             $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-            $module | Where-Object Path -notin $module.Scripts
-
+            $module | Where-Object {$_.Path -notin $module.Scripts}
         }).AddParameters($Params)
 
         #Consider moving this to a runspace or job to keep session clean
@@ -62,7 +61,6 @@ function Set-ModuleFunctions {
         {
             Throw "Could not find module '$Name'"
         }
-
         if(-not $FunctionsToExport)
         {
             $FunctionsToExport = @( $Module.ExportedFunctions.Keys )
@@ -77,7 +75,7 @@ function Set-ModuleFunctions {
         }
 
         Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
-        
+
         # Close down the runspace
         $PowerShell.Dispose()
     }
