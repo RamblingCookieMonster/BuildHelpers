@@ -88,7 +88,13 @@ function Find-NugetPackage {
     Invoke-RestMethod $URI | 
     Select-Object @{n='Name';ex={$_.title.('#text')}},
                   @{n='Author';ex={$_.author.name}},
-                  @{n='Version';ex={$_.properties.NormalizedVersion}},
+                  @{n='Version';ex={
+                    if($_.properties.NormalizedVersion){
+                      $_.properties.NormalizedVersion
+                    }else{
+                      $_.properties.Version
+                    }
+                  }},
                   @{n='Uri';ex={$_.Content.src}},
                   @{n='Description';ex={$_.properties.Description}},
                   @{n='Properties';ex={$_.properties}}
