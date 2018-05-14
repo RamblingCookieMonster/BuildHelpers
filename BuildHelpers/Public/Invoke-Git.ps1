@@ -1,5 +1,5 @@
 ﻿Function Invoke-Git {
-<#
+    <#
     .SYNOPSIS
         Wrapper to invoke git and return streams
 
@@ -58,95 +58,107 @@
     #>
     [cmdletbinding()]
     param(
-        [parameter(Position = 0,
-                   ValueFromRemainingArguments = $true)]
-        $Arguments,
+        [parameter(
+            Position = 0,
+            ValueFromRemainingArguments = $true
+        )]
+        [String]$Arguments,
 
-        $NoWindow = $true,
-        $RedirectStandardError = $true,
-        $RedirectStandardOutput = $true,
-        $UseShellExecute = $false,
-        $Path = $PWD.Path,
-        $Quiet,
-        $Split = "`n",
-        $Raw,
-        [validatescript({
-            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
+        [Bool]$NoWindow = $true,
+        [Bool]$RedirectStandardError = $true,
+        [Bool]$RedirectStandardOutput = $true,
+        [Bool]$UseShellExecute = $false,
+        [String]$Path = $PWD.Path,
+        [Switch]$Quiet,
+        [String]$Split = "`n",
+        [Switch]$Raw,
+        [validatescript(
             {
-                throw "Could not find command at GitPath [$_]"
+                if (-not (Get-Command $_ -ErrorAction SilentlyContinue)) {
+                    throw "Could not find command at GitPath [$_]"
+                }
+                $true
             }
-            $true
-        })]
-        [string]$GitPath = 'git'
+        )]
+        [String]$GitPath = 'git'
     )
 
-    $Path = (Resolve-Path $Path).Path
-    # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
-    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-    if(!$PSBoundParameters.ContainsKey('GitPath')) {
-        $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
-    }
-    $pinfo.FileName = $GitPath
-    $Command = $GitPath
-    $pinfo.CreateNoWindow = $NoWindow
-    $pinfo.RedirectStandardError = $RedirectStandardError
-    $pinfo.RedirectStandardOutput = $RedirectStandardOutput
-    $pinfo.UseShellExecute = $UseShellExecute
-    $pinfo.WorkingDirectory = $Path
-    if($PSBoundParameters.ContainsKey('Arguments'))
-    {
-        $pinfo.Arguments = $Arguments
-        $Command = "$Command $Arguments"
-    }
-    $p = New-Object System.Diagnostics.Process
-    $p.StartInfo = $pinfo
-    $null = $p.Start()
-    $p.WaitForExit()
-    if($Quiet)
-    {
-        return
-    }
-    else
-    {
-        #there was a newline in output...
-        if($stdout = $p.StandardOutput.ReadToEnd())
-        {
-            if($split)
-            {
-                $stdout = $stdout -split "`n"  | Where {$_}
+    Begin {
+        function GetFullPath ([string]$Path) {
+            # https://github.com/pester/Pester/blob/5796c95e4d6ff5528b8e14865e3f25e40f01bd65/Functions/TestResults.ps1#L13-L27
+            $Folder = Split-Path -Path $Path -Parent
+            $File = Split-Path -Path $Path -Leaf
+            if ( -not ([String]::IsNullOrEmpty($Folder))) {
+                $FolderResolved = Resolve-Path -Path $Folder
             }
-            $stdout = foreach($item in @($stdout)){
-                $item.trim()
+            else {
+                $FolderResolved = Resolve-Path -Path $ExecutionContext.SessionState.Path.CurrentFileSystemLocation
             }
-        }
-        if($stderr = $p.StandardError.ReadToEnd())
-        {
-            if($split)
-            {
-                $stderr = $stderr -split "`n" | Where {$_}
-            }
-            $stderr = foreach($item in @($stderr)){
-                $item.trim()
-            }
+            $Path = Join-Path -Path $FolderResolved.ProviderPath -ChildPath $File
+
+            return $Path
         }
 
-        if($Raw)
-        {
-            [pscustomobject]@{
-                Command = $Command
-                Output = $stdout
-                Error = $stderr
-            }
+        $Path = GetFullPath $Path
+        if (!$PSBoundParameters.ContainsKey('GitPath')) {
+            $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
         }
-        else
-        {
-            if($stdout)
-            {
-                $stdout
+        $Command = $GitPath
+    }
+
+    Process {
+        # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
+        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+        $pinfo.FileName = $GitPath
+        $pinfo.CreateNoWindow = $NoWindow
+        $pinfo.RedirectStandardError = $RedirectStandardError
+        $pinfo.RedirectStandardOutput = $RedirectStandardOutput
+        $pinfo.UseShellExecute = $UseShellExecute
+        $pinfo.WorkingDirectory = $Path
+        if ($PSBoundParameters.ContainsKey('Arguments')) {
+            $pinfo.Arguments = $Arguments
+            $Command = "$Command $Arguments"
+        }
+        $p = New-Object System.Diagnostics.Process
+        $p.StartInfo = $pinfo
+        $null = $p.Start()
+        $p.WaitForExit()
+        if ($Quiet) {
+            return
+        }
+        else {
+            #there was a newline in output...
+            if ($stdout = $p.StandardOutput.ReadToEnd()) {
+                if ($split) {
+                    $stdout = $stdout -split "`n"  | Where {$_}
+                }
+                $stdout = foreach ($item in @($stdout)) {
+                    $item.trim()
+                }
             }
-            if($stderr)
-            {
-                Write-Error $stderr.trim()
+            if ($stderr = $p.StandardError.ReadToEnd()) {
+                if ($split) {
+                    $stderr = $stderr -split "`n" | Where {$_}
+                }
+                $stderr = foreach ($item in @($stderr)) {
+                    $item.trim()
+                }
+            }
+
+            if ($Raw) {
+                [pscustomobject]@{
+                    Command = $Command
+                    Output  = $stdout
+                    Error   = $stderr
+                }
+            }
+            else {
+                if ($stdout) {
+                    $stdout
+                }
+                if ($stderr) {
+                    Write-Error $stderr.trim()
+                }
             }
         }
     }
