@@ -321,7 +321,7 @@ Describe 'Set-CodeCoverageBadge' {
         Set-CodeCoverageBadge -TextFilePath TestDrive:\readme.md -CodeCoverage 75
 
         It 'Should update the dummy readme.md with code coverage' {
-            Get-Content TestDrive:\readme.md | Should -be '![Test Coverage](https://img.shields.io/badge/coverage-75%25-yellow.svg)'
+            Get-Content TestDrive:\readme.md | Should Be '![Test Coverage](https://img.shields.io/badge/coverage-75%25-yellow.svg)'
         }
     }
 }
