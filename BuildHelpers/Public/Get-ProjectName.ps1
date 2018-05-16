@@ -50,7 +50,7 @@ function Get-ProjectName
     $ExpectedPath = Join-Path -Path $Path -ChildPath $CurrentFolder
     if(Test-Path $ExpectedPath)
     {
-        $CurrentFolder
+        $result = $CurrentFolder
     }
     else
     {
@@ -64,16 +64,16 @@ function Get-ProjectName
         if( @($ProjectPaths).Count -gt 1 )
         {
             Write-Warning "Found more than one project path via subfolders with psd1 files"
-            Split-Path $ProjectPaths -Leaf
+            $result = Split-Path $ProjectPaths -Leaf
         }
         elseif( @($ProjectPaths).Count -eq 1 )
         {
-            Split-Path $ProjectPaths -Leaf
+            $result = Split-Path $ProjectPaths -Leaf
         }
         #PSD1 in root of project - ick, but happens.
         elseif( Test-Path "$ExpectedPath.psd1" )
         {
-            $CurrentFolder
+            $result = $CurrentFolder
         }
         # PSD1 in Source or Src folder
         elseif( Get-Item "$Path\S*rc*\*.psd1" -OutVariable SourceManifests)
@@ -82,12 +82,21 @@ function Get-ProjectName
             {
                 Write-Warning "Found more than one project manifest in the Source folder"
             }
-            $SourceManifests.BaseName
+            $result = $SourceManifests.BaseName
         }
         else
         {
             Write-Warning "Could not find a project from $($Path); defaulting to project root for name"
-            Split-Path $Path -Leaf
+            $result = Split-Path $Path -Leaf
         }
+    }
+    
+    if ($env:APPVEYOR_PROJECT_NAME -and $env:APPVEYOR_JOB_ID -and ($result -like $env:APPVEYOR_PROJECT_NAME))
+    {
+        $env:APPVEYOR_PROJECT_NAME
+    }
+    else
+    {
+        $result
     }
 }

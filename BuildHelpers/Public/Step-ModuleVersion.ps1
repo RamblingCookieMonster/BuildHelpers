@@ -50,13 +50,21 @@ function Step-ModuleVersion
         [string]
         $By = "Patch"
     )
+
+    Begin 
+    {
+        if (-not $PSBoundParameters.ContainsKey("Path"))
+        {
+            $Path = (Get-Item $PWD\*.psd1)[0]
+        }                
+    }
     
     Process
     {
         foreach ($file in $Path)
         {
             $file = Get-FullPath $file
-            
+
             $manifest = Import-PowerShellDataFile -Path $file 
             $newVersion = Step-Version $manifest.ModuleVersion $By
             $manifest.Remove("ModuleVersion")
