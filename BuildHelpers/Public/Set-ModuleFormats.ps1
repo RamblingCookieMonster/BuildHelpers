@@ -1,4 +1,5 @@
-function Set-ModuleFormats {
+function Set-ModuleFormats
+{
     <#
     .SYNOPSIS
         EXPIRIMENTAL: Set FormatsToProcess
@@ -40,6 +41,7 @@ function Set-ModuleFormats {
     [cmdletbinding()]
     param(
         [parameter(ValueFromPipeline = $True)]
+        [ValidateNotNullOrEmpty()]
         [Alias('Path')]
         [string]$Name,
 
@@ -58,7 +60,7 @@ function Set-ModuleFormats {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = $Name
+            Name = Get-FullPath $Name
         }
 
         # Create a runspace
@@ -66,11 +68,11 @@ function Set-ModuleFormats {
 
         # Add scriptblock to the runspace
         [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-            $module | Where-Object Path -notin $module.Scripts
+                Param ($Force, $Passthru, $Name)
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                $module | Where-Object Path -notin $module.Scripts
 
-        }).AddParameters($Params)
+            }).AddParameters($Params)
 
         #Invoke the command
         $Module = $PowerShell.Invoke()
@@ -94,7 +96,8 @@ function Set-ModuleFormats {
             $FormatList = Get-ChildItem -Path $FormatPath\*.ps1xml
 
             $FormatsToProcess = @()
-            Foreach ($Item in $FormatList) {
+            Foreach ($Item in $FormatList)
+            {
                 $FormatsToProcess += Join-Path -Path $FormatsRelativePath -ChildPath $Item.Name
             }
         }

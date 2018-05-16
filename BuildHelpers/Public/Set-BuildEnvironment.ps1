@@ -84,6 +84,7 @@ function Set-BuildEnvironment {
     [cmdletbinding()]
     param(
         [validatescript({ Test-Path $_ -PathType Container })]
+        [ValidateNotNullOrEmpty()]
         $Path = $PWD.Path,
 
         [ValidatePattern('\w*')]
@@ -107,7 +108,7 @@ function Set-BuildEnvironment {
         [string]$GitPath
     )
     $GBEParams = @{
-        Path = $Path
+        Path = Get-FullPath $Path
         As = 'hashtable'
         BuildOutput = $BuildOutput
     }

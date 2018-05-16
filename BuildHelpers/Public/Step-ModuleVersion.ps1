@@ -29,14 +29,15 @@
 .LINK
     New-ModuleManifest
 #>
-function Step-ModuleVersion {
+function Step-ModuleVersion
+{
     [CmdletBinding()]
     param(
         # Specifies a path a valid Module Manifest file.
         [Parameter(Position=0,
-                   ValueFromPipeline=$true,
-                   ValueFromPipelineByPropertyName=$true,
-                   HelpMessage="Path to one or more locations.")]
+            ValueFromPipeline=$true,
+            ValueFromPipelineByPropertyName=$true,
+            HelpMessage="Path to one or more locations.")]
         [Alias("PSPath")]
         [ValidateScript({ Test-Path $_ -PathType Leaf })]
         [string[]]
@@ -50,18 +51,12 @@ function Step-ModuleVersion {
         $By = "Patch"
     )
     
-    Begin 
-    {
-        if (-not $PSBoundParameters.ContainsKey("Path"))
-        {
-            $Path = (Get-Item $PWD\*.psd1)[0]
-        }                
-    }
-    
     Process
     {
         foreach ($file in $Path)
-        {            
+        {
+            $file = Get-FullPath $file
+            
             $manifest = Import-PowerShellDataFile -Path $file 
             $newVersion = Step-Version $manifest.ModuleVersion $By
             $manifest.Remove("ModuleVersion")

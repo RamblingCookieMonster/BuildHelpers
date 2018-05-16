@@ -1,4 +1,5 @@
-function Get-ModuleFunctions {
+function Get-ModuleFunctions
+{
     <#
     .SYNOPSIS
         List functions imported by a module
@@ -27,6 +28,7 @@ function Get-ModuleFunctions {
     [cmdletbinding()]
     param(
         [parameter(ValueFromPipeline = $True)]
+        [ValidateNotNullOrEmpty()]
         [Alias('Path')]
         [string]$Name
     )
@@ -41,16 +43,16 @@ function Get-ModuleFunctions {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = $Name
+            Name = Get-FullPath $Name
         }
 
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                Param ($Force, $Passthru, $Name)
+                Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
 
-        }).AddParameters($Params)
+            }).AddParameters($Params)
 
         ( $PowerShell.Invoke() ).ExportedFunctions.Keys
 

@@ -1,4 +1,5 @@
-function Add-TestResultToAppveyor {
+function Add-TestResultToAppveyor
+{
     <#
     .SYNOPSIS
         Upload test results to AppVeyor
@@ -27,30 +28,38 @@ function Add-TestResultToAppveyor {
 
         # List of files to be uploaded
         [Parameter(Mandatory,
-                   Position,
-                   ValueFromPipeline,
-                   ValueFromPipelineByPropertyName,
-                   ValueFromRemainingArguments
+            Position,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName,
+            ValueFromRemainingArguments
         )]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({ Test-Path $_ })]
         [Alias("FullName")]
         [string[]]
         $TestFile
     )
 
-    begin {
-            $wc = New-Object 'System.Net.WebClient'
+    begin
+    {
+        $wc = New-Object 'System.Net.WebClient'
     }
 
-    process {
-        foreach ($File in $TestFile) {
-            if (Test-Path $File) {
+    process
+    {
+        foreach ($File in $TestFile)
+        {
+            $file = Get-FullPath $file
+            if (Test-Path $File)
+            {
                 Write-Verbose "Uploading $File for Job ID: $APPVEYOR_JOB_ID"
                 $wc.UploadFile("https://ci.appveyor.com/api/testresults/$ResultType/$($APPVEYOR_JOB_ID)", $File)
             }
         }
     }
 
-    end {
+    end
+    {
         $wc.Dispose()
     }
 }

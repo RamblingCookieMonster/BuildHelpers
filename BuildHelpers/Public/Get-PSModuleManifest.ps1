@@ -1,4 +1,5 @@
-﻿function Get-PSModuleManifest {
+﻿function Get-PSModuleManifest
+{
     <#
     .SYNOPSIS
         Get the PowerShell module manifest for a project
@@ -40,10 +41,11 @@
     #>
     [cmdletbinding()]
     param(
+        [ValidateNotNullOrEmpty()]
         $Path = $PWD.Path
     )
 
-    $Path = ( Resolve-Path $Path ).Path
+    $Path = Get-FullPath $Path
 
     $CurrentFolder = Split-Path $Path -Leaf
     $ExpectedPath = Join-Path -Path $Path -ChildPath $CurrentFolder
@@ -57,13 +59,13 @@
         # Look for properly organized modules
         $ProjectPaths = Get-ChildItem $Path -Directory | 
             ForEach-Object {
-                $ThisFolder = $_
-                $ExpectedManifest = Join-Path $ThisFolder.FullName "$($ThisFolder.Name).psd1"
-                If( Test-Path $ExpectedManifest)
-                {
-                    $ExpectedManifest
-                }
+            $ThisFolder = $_
+            $ExpectedManifest = Join-Path $ThisFolder.FullName "$($ThisFolder.Name).psd1"
+            If( Test-Path $ExpectedManifest)
+            {
+                $ExpectedManifest
             }
+        }
 
         if( @($ProjectPaths).Count -gt 1 )
         {

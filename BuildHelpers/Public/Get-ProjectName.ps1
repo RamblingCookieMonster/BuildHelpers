@@ -1,4 +1,5 @@
-function Get-ProjectName {
+function Get-ProjectName
+{
     <#
     .SYNOPSIS
         Get the name for this project
@@ -41,6 +42,7 @@ function Get-ProjectName {
     #>
     [cmdletbinding()]
     param(
+        [ValidateNotNullOrEmpty()]
         $Path = $PWD.Path
     )
     $Path = Get-FullPath $Path
@@ -55,8 +57,8 @@ function Get-ProjectName {
         # Look for properly organized modules
         $ProjectPaths = Get-ChildItem $Path -Directory |
             Where-Object {
-                Test-Path $(Join-Path $_.FullName "$($_.name).psd1")
-            } |
+            Test-Path $(Join-Path $_.FullName "$($_.name).psd1")
+        } |
             Select -ExpandProperty Fullname
 
         if( @($ProjectPaths).Count -gt 1 )

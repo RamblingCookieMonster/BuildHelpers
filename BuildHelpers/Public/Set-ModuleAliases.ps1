@@ -1,4 +1,5 @@
-function Set-ModuleAliases {
+function Set-ModuleAliases
+{
     <#
     .SYNOPSIS
         EXPIRIMENTAL: Set AliasesToExport in a module manifest
@@ -28,6 +29,7 @@ function Set-ModuleAliases {
     [cmdletbinding()]
     param(
         [parameter(ValueFromPipeline = $True)]
+        [ValidateNotNullOrEmpty()]
         [Alias('Path')]
         [string]$Name,
 
@@ -44,17 +46,17 @@ function Set-ModuleAliases {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = $Name
+            Name = Get-FullPath $Name
         }
 
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-            $module | Where-Object Path -notin $module.Scripts
+                Param ($Force, $Passthru, $Name)
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                $module | Where-Object Path -notin $module.Scripts
 
-        }).AddParameters($Params)
+            }).AddParameters($Params)
 
         #Consider moving this to a runspace or job to keep session clean
         $Module = $PowerShell.Invoke()

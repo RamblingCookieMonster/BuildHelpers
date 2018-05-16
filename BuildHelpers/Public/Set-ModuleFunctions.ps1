@@ -1,4 +1,5 @@
-function Set-ModuleFunctions {
+function Set-ModuleFunctions
+{
     <#
     .SYNOPSIS
         Set FunctionsToExport in a module manifest
@@ -28,6 +29,7 @@ function Set-ModuleFunctions {
     [cmdletbinding()]
     param(
         [parameter(ValueFromPipeline = $True)]
+        [ValidateNotNullOrEmpty()]
         [Alias('Path')]
         [string]$Name,
 
@@ -44,16 +46,16 @@ function Set-ModuleFunctions {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = (Resolve-Path $Name).Path
+            Name = Get-FullPath $Name
         }
 
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-            $module | Where-Object {$_.Path -notin $module.Scripts}
-        }).AddParameters($Params)
+                Param ($Force, $Passthru, $Name)
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                $module | Where-Object {$_.Path -notin $module.Scripts}
+            }).AddParameters($Params)
 
         #Consider moving this to a runspace or job to keep session clean
         $Module = $PowerShell.Invoke()
