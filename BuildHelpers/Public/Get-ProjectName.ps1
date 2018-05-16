@@ -43,6 +43,11 @@ function Get-ProjectName {
     param(
         $Path = $PWD.Path
     )
+    
+    if ($env:APPVEYOR_PROJECT_NAME -and $env:APPVEYOR_JOB_ID) {
+        return $env:APPVEYOR_PROJECT_NAME
+    }
+    
     $Path = ( Resolve-Path $Path ).Path
     $CurrentFolder = Split-Path $Path -Leaf
     $ExpectedPath = Join-Path -Path $Path -ChildPath $CurrentFolder
