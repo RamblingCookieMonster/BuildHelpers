@@ -27,13 +27,6 @@ Describe "$ModuleName PS$PSVersion" {
 }
 
 Describe "Get-ProjectName PS$PSVersion" {
-    BeforeAll {
-        $script:TempProjectName = $env:BHProjectName
-        Remove-Item Env:BHProjectName
-    }
-    AfterAll {
-        $env:BHProjectName = $script:TempProjectName
-    }
     Context 'Strict mode' {
 
         Set-StrictMode -Version latest
