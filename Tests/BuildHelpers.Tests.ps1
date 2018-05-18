@@ -314,14 +314,14 @@ Describe 'Set-ModuleFunctions' {
     }
 }
 
-Describe 'Set-CodeCoverageBadge' {
+Describe 'Set-ShieldsIoBadge' {
     Context 'dummy readme.md' {
-        Set-Content -Path TestDrive:\readme.md -Value '![Test Coverage](https://img.shields.io/badge/coverage.svg)'
+        Set-Content -Path TestDrive:\readme.md -Value '![coverage]()'
 
-        Set-CodeCoverageBadge -TextFilePath TestDrive:\readme.md -CodeCoverage 75
+        Set-ShieldsIoBadge -Subject 'coverage' -Status 75 -AsPercentage -Path TestDrive:\readme.md
 
         It 'Should update the dummy readme.md with code coverage' {
-            Get-Content TestDrive:\readme.md | Should Be '![Test Coverage](https://img.shields.io/badge/coverage-75%25-yellow.svg)'
+            Get-Content TestDrive:\readme.md | Should Be '![coverage](https://img.shields.io/badge/coverage-75%25-yellow.svg)'
         }
     }
 }
