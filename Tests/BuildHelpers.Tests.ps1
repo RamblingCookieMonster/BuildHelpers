@@ -213,26 +213,26 @@ Describe 'Step-ModuleVersion' {
         }
         
         It 'Should have an properly formatted array for "FunctionsToExport"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain "FunctionsToExport = 'Get-MyFunction', 'Set-MyFunction'" 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "FunctionsToExport = 'Get-MyFunction', 'Set-MyFunction'" 
         }
         
         It 'Should have an properly formatted array for "Tags"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain "Tags = 'one', 'two', 'three'" 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "Tags = 'one', 'two', 'three'" 
         }         
 
         It 'Should have an properly formatted array for "NestedModules"' {		
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape('NestedModules = @(''Module1'',')) 		
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape("               'Module2')"))		
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('NestedModules = @(''Module1'',')) 		
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'Module2')"))		
         }     
 
         It 'Should have an properly formatted array for "RequiredModules"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape('RequiredModules = @(''ModuleA'',')) 
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape("               'ModuleB')"))
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('RequiredModules = @(''ModuleA'',')) 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'ModuleB')"))
         }       
         
         It 'Should have an properly formatted array for "ModuleList"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape('ModuleList = @(''ModuleX'',')) 
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should Contain ([regex]::Escape("               'ModuleY')"))
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('ModuleList = @(''ModuleX'',')) 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'ModuleY')"))
         }                            
         
         It 'The other properties should be the same' {
