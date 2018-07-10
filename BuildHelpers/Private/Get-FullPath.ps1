@@ -15,7 +15,7 @@ function Get-FullPath {
         Returns the full path of .gitignore:
         C:\project\MyProject\.gitignore
     .EXAMPLE
-        PS Projects:\MyProject>  Get-FullPath ./.gitignore
+        PS Projects:\MyProject>  Get-FullPath "Projects:\MyProject\.gitignore"
 
         Returns the full path of .gitignore:
         C:\project\MyProject\.gitignore
