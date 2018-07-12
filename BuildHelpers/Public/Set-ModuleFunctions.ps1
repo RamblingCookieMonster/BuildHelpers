@@ -33,6 +33,7 @@ function Set-ModuleFunctions {
 
         [string[]]$FunctionsToExport
     )
+
     Process
     {
         if(-not $Name)
@@ -41,22 +42,8 @@ function Set-ModuleFunctions {
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
-        $params = @{
-            Force = $True
-            Passthru = $True
-            Name = (Resolve-Path $Name).Path
-        }
+        $Module = Import-Module -Name (Resolve-Path $Name).Path -PassThru -Force -Scope Local
 
-        # Create a runspace, add script to run
-        $PowerShell = [Powershell]::Create()
-        [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-            $module | Where-Object {$_.Path -notin $module.Scripts}
-        }).AddParameters($Params)
-
-        #Consider moving this to a runspace or job to keep session clean
-        $Module = $PowerShell.Invoke()
         if(-not $Module)
         {
             Throw "Could not find module '$Name'"
@@ -75,8 +62,5 @@ function Set-ModuleFunctions {
         }
 
         Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
-
-        # Close down the runspace
-        $PowerShell.Dispose()
     }
 }
