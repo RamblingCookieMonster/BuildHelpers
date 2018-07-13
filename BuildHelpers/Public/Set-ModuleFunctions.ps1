@@ -36,13 +36,16 @@ function Set-ModuleFunctions {
 
     Process
     {
+        # cache the modules loaded before we start
+        $loadedModules = Get-Module
+
         if(-not $Name)
         {
             $BuildDetails = Get-BuildVariables
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
-        $Module = Import-Module -Name (Resolve-Path $Name).Path -PassThru -Force -Scope Local
+        $Module = Import-Module -Name (Resolve-Path $Name).Path -PassThru -Force
 
         if(-not $Module)
         {
@@ -62,5 +65,10 @@ function Set-ModuleFunctions {
         }
 
         Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
+
+        # remove all modules no in the cache
+        Get-Module |
+            Where-Object { $_ -notin $loadedModules } |
+            Foreach-Object { Remove-Module -ModuleInfo $_ -ErrorAction SilentlyContinue }
     }
 }
