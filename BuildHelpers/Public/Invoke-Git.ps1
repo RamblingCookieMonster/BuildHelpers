@@ -80,7 +80,7 @@
         [string]$GitPath = 'git'
     )
 
-    $Path = (Resolve-Path $Path).Path
+    $Path = (Resolve-Path $Path).ProviderPath
     # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
     if(!$PSBoundParameters.ContainsKey('GitPath')) {
