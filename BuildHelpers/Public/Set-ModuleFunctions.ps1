@@ -51,7 +51,14 @@ function Set-ModuleFunctions {
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            try 
+            {
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force -ErrorAction Stop
+            catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
+            {
+                #If using PowerCli as dependencey exception is thrown, re-importing works for some reason
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            }
             $module | Where-Object {$_.Path -notin $module.Scripts}
         }).AddParameters($Params)
 
