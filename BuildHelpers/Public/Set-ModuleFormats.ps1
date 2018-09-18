@@ -67,9 +67,15 @@ function Set-ModuleFormats {
         # Add scriptblock to the runspace
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            try
+            {
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            }
+            catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
+            {
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            }
             $module | Where-Object Path -notin $module.Scripts
-
         }).AddParameters($Params)
 
         #Invoke the command
