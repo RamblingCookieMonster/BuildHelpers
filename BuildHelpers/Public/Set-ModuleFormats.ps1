@@ -58,7 +58,7 @@ function Set-ModuleFormats {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = $Name
+            Name = (Resolve-Path $Name).ProviderPath
         }
 
         # Create a runspace
