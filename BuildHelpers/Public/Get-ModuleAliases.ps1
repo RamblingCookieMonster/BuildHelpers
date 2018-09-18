@@ -48,8 +48,14 @@ function Get-ModuleAliases {
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
-            Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-
+            try
+            {
+                Import-Module -Name $Name -PassThru:$Passthru -Force:$Force -ErrorAction Stop
+            }
+            catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
+            {
+                Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            }
         }).AddParameters($Params)
 
         ( $PowerShell.Invoke() ).ExportedAliases.Keys
