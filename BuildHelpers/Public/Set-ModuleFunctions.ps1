@@ -54,6 +54,7 @@ function Set-ModuleFunctions {
             try 
             {
                 $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force -ErrorAction Stop
+            }
             catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
             {
                 #If using PowerCli as dependencey exception is thrown, re-importing works for some reason
