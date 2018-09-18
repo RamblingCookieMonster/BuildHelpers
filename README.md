@@ -137,7 +137,7 @@ Typical examples take an existing PSD1 file and bump the module version from tha
 
 ```powershell
 # Get the latest version for a project
-$Version = Get-NextPSGalleryVersion -Name $env:BHProjectName
+$Version = Get-NextNugetPackageVersion -Name $env:BHProjectName
 
 # Update the module metadata with the new version - thanks to Joel Bennett for this function!
 Update-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -Value $Version

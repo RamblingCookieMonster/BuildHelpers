@@ -1,4 +1,4 @@
-﻿function Get-NextPSGalleryVersion {
+﻿function Get-NextPowerShellGetVersion {
     <#
     .SYNOPSIS
         DEPRECATED: Please use Get-NextNugetPackageVersion
@@ -28,10 +28,10 @@
         Module or script.  Defaults to module.
 
     .EXAMPLE
-        Get-NextPSGalleryVersion PSDeploy
+        Get-NextPowerShellGetVersion PSDeploy
 
     .EXAMPLE
-        Get-NextPSGalleryVersion Open-ISEFunction -Type Script
+        Get-NextPowerShellGetVersion Open-ISEFunction -Type Script
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers

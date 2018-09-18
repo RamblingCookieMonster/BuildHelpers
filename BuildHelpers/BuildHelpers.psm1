@@ -38,4 +38,5 @@ Export-ModuleMember -Function Get-Metadata, Update-Metadata, Export-Metadata
 
 # Set aliases (#10)
 Set-Alias -Name Set-BuildVariable -Value $PSScriptRoot\Scripts\Set-BuildVariable.ps1
-Export-ModuleMember -Alias Set-BuildVariable
+Set-Alias -Name Get-NextPSGalleryVersion -Value Get-NextNugetPackageVersion
+Export-ModuleMember -Alias Set-BuildVariable, Get-NextPSGalleryVersion
