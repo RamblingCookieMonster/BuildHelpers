@@ -50,8 +50,15 @@ function Set-ModuleAliases {
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            param ($Force, $Passthru, $Name)
+            try
+            {
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            }
+            catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
+            {
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            }
             $module | Where-Object Path -notin $module.Scripts
 
         }).AddParameters($Params)
