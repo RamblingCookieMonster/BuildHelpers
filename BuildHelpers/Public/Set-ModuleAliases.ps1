@@ -60,7 +60,6 @@ function Set-ModuleAliases {
                 $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
             }
             $module | Where-Object Path -notin $module.Scripts
-
         }).AddParameters($Params)
 
         #Consider moving this to a runspace or job to keep session clean
