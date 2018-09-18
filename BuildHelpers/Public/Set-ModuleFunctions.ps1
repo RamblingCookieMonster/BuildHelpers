@@ -44,7 +44,7 @@ function Set-ModuleFunctions {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = (Resolve-Path $Name).Path
+            Name = (Resolve-Path $Name).ProviderPath
         }
 
         # Create a runspace, add script to run
