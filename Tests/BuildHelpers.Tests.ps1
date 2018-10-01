@@ -10,6 +10,7 @@ $ModuleName = $ENV:BHProjectName
         $Verbose.add("Verbose",$True)
     }
 
+Remove-Module $ModuleName
 Import-Module $PSScriptRoot\..\$ModuleName -Force
 
 Describe "$ModuleName PS$PSVersion" {
@@ -51,142 +52,142 @@ Describe "Get-ProjectName PS$PSVersion" {
 }
 
 Describe 'Step-Version' {
-    Context 'By Param' {               
+    Context 'By Param' {
         It 'Should increment the Patch level' {
             $result = Step-Version @Verbose 1.1.1
             $result | Should Be 1.1.2
         }
-        
+
         It 'Should increment the Minor level and set Patch level to 0' {
             $result = Step-Version @Verbose 1.1.1 Minor
             $result | Should Be 1.2.0
-        }      
-        
+        }
+
         It 'Should increment the Major level and set the Minor and Patch level to 0' {
             $result = Step-Version @Verbose 1.1.1 Major
             $result | Should Be 2.0.0
-        }        
+        }
     }
-    
+
     Context 'By Pipeline' {
         It 'Should increment the Patch level' {
             $result = [version]"1.1.1" | Step-Version @Verbose
             $result | Should Be 1.1.2
         }
-        
+
         It 'Should increment the Minor level and set Patch level to 0' {
             $result = $result = [version]"1.1.1" | Step-Version @Verbose -By Minor
             $result | Should Be 1.2.0
-        }      
-        
+        }
+
         It 'Should increment the Major level and set the Minor and Patch level to 0' {
             $result = $result = [version]"1.1.1" | Step-Version @Verbose -By Major
             $result | Should Be 2.0.0
-        }           
+        }
     }
 }
 
 Describe 'Step-ModuleVersion' {
     Context 'Basic Manifest' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
                             ModuleVersion = "1.1.1"
-                            Description = "A test module"    
+                            Description = "A test module"
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
         Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
 
-        $newManifest = Import-PowerShellDataFile @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1                
-        
+        $newManifest = Import-PowerShellDataFile @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
+
         It 'Passes Test-ModuleManifest' {
             Test-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1
             $? | Should Be $true
         }
-        
+
         It 'Should be at version 1.1.2' {
             $newManifest.ModuleVersion | Should Be 1.1.2
         }
-        
+
         It 'The other properties should be the same' {
             $newManifest.Guid | Should Be $manifestParams.Guid
             $newManifest.Author | Should Be $manifestParams.Author
             $newManifest.RootModule | Should Be $manifestParams.RootModule
-            $newManifest.Description | Should Be $manifestParams.Description            
+            $newManifest.Description | Should Be $manifestParams.Description
         }
     }
-    
+
     Context 'Basic Manifest in PWD' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\ -Name notamanifest.txt -ItemType File
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
                             ModuleVersion = "1.1.1"
-                            Description = "A test module"    
+                            Description = "A test module"
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
         Push-Location
-        Set-Location -Path TestDrive:\testmanifest\           
-               
+        Set-Location -Path TestDrive:\testmanifest\
+
         It 'Should be at version 1.1.2' {
             Step-ModuleVersion @Verbose
-            $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1   
+            $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
             $newManifest.ModuleVersion | Should Be 1.1.2
         }
 
         Pop-Location
-    }    
-    
+    }
+
     Context 'Basic Manifest with Minor step' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
                             ModuleVersion = "1.1.1"
-                            Description = "A test module"    
+                            Description = "A test module"
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
         Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1 -By Minor
 
-        $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1                
-        
+        $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
+
         It 'Passes Test-ModuleManifest' {
             Test-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1
             $? | Should Be $true
         }
-        
+
         It 'Should be at version 1.2.0' {
             $newManifest.ModuleVersion | Should Be 1.2.0
         }
-        
+
         It 'The other properties should be the same' {
             $newManifest.Guid | Should Be $manifestParams.Guid
             $newManifest.Author | Should Be $manifestParams.Author
             $newManifest.RootModule | Should Be $manifestParams.RootModule
-            $newManifest.Description | Should Be $manifestParams.Description            
+            $newManifest.Description | Should Be $manifestParams.Description
         }
-    }    
+    }
     Context 'Complex Manifest' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
@@ -201,40 +202,40 @@ Describe 'Step-ModuleVersion' {
                             RequiredModules = @("ModuleA","ModuleB")
                             ModuleList = @("ModuleX","ModuleY")
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
         Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
 
         $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
-        
+
         It 'Should be at version 1.1.2' {
             $newManifest.ModuleVersion | Should Be 1.1.2
         }
-        
-        It 'Should have an properly formatted array for "FunctionsToExport"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "FunctionsToExport = 'Get-MyFunction', 'Set-MyFunction'" 
-        }
-        
-        It 'Should have an properly formatted array for "Tags"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "Tags = 'one', 'two', 'three'" 
-        }         
 
-        It 'Should have an properly formatted array for "NestedModules"' {		
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('NestedModules = @(''Module1'',')) 		
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'Module2')"))		
-        }     
+        It 'Should have an properly formatted array for "FunctionsToExport"' {
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "FunctionsToExport = 'Get-MyFunction', 'Set-MyFunction'"
+        }
+
+        It 'Should have an properly formatted array for "Tags"' {
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "Tags = 'one', 'two', 'three'"
+        }
+
+        It 'Should have an properly formatted array for "NestedModules"' {
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('NestedModules = @(''Module1'','))
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'Module2')"))
+        }
 
         It 'Should have an properly formatted array for "RequiredModules"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('RequiredModules = @(''ModuleA'',')) 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('RequiredModules = @(''ModuleA'','))
             'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'ModuleB')"))
-        }       
-        
+        }
+
         It 'Should have an properly formatted array for "ModuleList"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('ModuleList = @(''ModuleX'',')) 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('ModuleList = @(''ModuleX'','))
             'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'ModuleY')"))
-        }                            
-        
+        }
+
         It 'The other properties should be the same' {
             $newManifest.Guid | Should Be $manifestParams.Guid
             $newManifest.Author | Should Be $manifestParams.Author
@@ -256,7 +257,7 @@ Describe 'Get-GitChangedFile' {
         #     @($Output).count | Should BeGreaterThan 0
         #     Test-Path @($Output)[0] | Should Be $true
         # }
-              
+
         It 'Should find files changed in a specified commit in this repo' {
             $Output = Get-GitChangedFile -Commit 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7 -ErrorAction SilentlyContinue -Include README*
             @($Output).count | Should Be 1
@@ -322,6 +323,157 @@ Describe 'Set-ShieldsIoBadge' {
 
         It 'Should update the dummy readme.md with code coverage' {
             Get-Content TestDrive:\readme.md | Should Be '![coverage](https://img.shields.io/badge/coverage-75%25-yellow.svg)'
+        }
+    }
+}
+
+Describe 'Publish-GithubRelease' {
+    Mock Get-ProjectName -ModuleName BuildHelpers { "MockedBuildHelpers" }
+    Mock Invoke-RestMethod -ModuleName BuildHelpers {
+        [PSCustomObject]@{upload_url = "https://upload{?name,label}"}
+    }
+
+    Context 'Behavior' {
+        It 'Uses $env:BHProjectName as default repository name' {
+            Publish-GithubRelease -AccessToken "a" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Get-ProjectName"
+                ModuleName = "BuildHelpers"
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Uses the provived RepositoryName' {
+            Publish-GithubRelease -AccessToken "a" -Owner "MyUser" -TagName "a" -RepositoryName "MyGithubRepository"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://api.github.com/repos/MyUser/MyGithubRepository/releases*"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Encodes the PAT to base64' {
+            Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Headers.Authorization -eq 'Basic YWJjOngtb2F1dGgtYmFzaWM='
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Does not upload files when none are provided' {
+            Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://upload*"
+                }
+                Exactly = $true
+                Times = 0
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Uploads artifacts' {
+            "" > TestDrive:\testfile1.txt
+            "" > TestDrive:\testfile2.txt
+
+            Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a" -Artifact "TestDrive:\testfile1.txt", "TestDrive:\testfile2.txt"
+            "TestDrive:\testfile1.txt", "TestDrive:\testfile2.txt" | Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+            Get-Childitem "TestDrive:\*.txt" | Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://upload*testfile1.txt"
+                }
+                Exactly = $true
+                Times = 3
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://upload*testfile2.txt"
+                }
+                Exactly = $true
+                Times = 3
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+    }
+
+    Context 'Patameters' {
+        It 'Constructs the body of the request correctly' {
+            $release = @{
+                AccessToken = "00000000000000000000000"
+                Owner = "a"
+                TagName = "v1.0"
+                Name = "Version 1.0"
+                ReleaseText = "First version of my cool thing"
+                Draft = $true
+                PreRelease = $false
+            }
+            Publish-GithubRelease @release
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Body -match "`"tag_name`"\s*:\s*`"v1.0`"" -and
+                    $Body -match "`"name`"\s*:\s*`"Version 1.0`"" -and
+                    $Body -match "`"body`"\s*:\s*`"First version of my cool thing`"" -and
+                    $Body -match "`"draft`"\s*:\s*true"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Does not add optional parameters if not provided' {
+            Publish-GithubRelease -AccessToken "a" -Owner "a" -TagName "v0.1" -Name "Beta Version 0.1" -PreRelease
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Body -notlike "*target_commitish*" -and
+                    $Body -notlike "*body*" -and
+                    $Body -notlike "*draft*"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
         }
     }
 }
