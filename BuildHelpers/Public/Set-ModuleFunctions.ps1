@@ -55,10 +55,16 @@ function Set-ModuleFunctions {
             {
                 $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force -ErrorAction Stop
             }
-            catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
+            catch
             {
-                #If using PowerCli as dependencey exception is thrown, re-importing works for some reason
-                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                if ($PsItem -is [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException])
+                {
+                    Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                }
+                else
+                {
+                    Write-error -ErrorRecord $PSItem -ErrorAction Stop
+                }
             }
             $module | Where-Object {$_.Path -notin $module.Scripts}
         }).AddParameters($Params)
