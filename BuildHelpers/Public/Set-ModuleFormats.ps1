@@ -71,9 +71,16 @@ function Set-ModuleFormats {
             {
                 $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
             }
-            catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
+            catch
             {
-                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                if ($PsItem -is [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException])
+                {
+                    Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                }
+                else
+                {
+                    Write-error -ErrorRecord $PSItem -ErrorAction Stop
+                }
             }
             $module | Where-Object Path -notin $module.Scripts
         }).AddParameters($Params)
