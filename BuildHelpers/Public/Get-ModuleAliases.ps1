@@ -52,9 +52,16 @@ function Get-ModuleAliases {
             {
                 Import-Module -Name $Name -PassThru:$Passthru -Force:$Force -ErrorAction Stop
             }
-            catch [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException]
+            catch
             {
-                Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                if ($PsItem -is [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException])
+                {
+                    Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                }
+                else
+                {
+                    Write-error -ErrorRecord $PSItem -ErrorAction Stop
+                }
             }
         }).AddParameters($Params)
 
