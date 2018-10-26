@@ -73,7 +73,7 @@ function Set-ModuleFormats {
             }
             catch
             {
-                if ($PsItem -is [VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException])
+                if ($PsItem.Exception.GetType().FullName -eq 'VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException')
                 {
                     Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
                 }
