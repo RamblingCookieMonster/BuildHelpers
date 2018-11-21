@@ -314,6 +314,104 @@ Describe 'Set-ModuleFunctions' {
     }
 }
 
+Describe 'Set-ModuleFormats' {
+    Context 'Can set FormatsToProcess with an array of *.ps1xml files' {
+        $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
+        Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
+        Copy-item $PSScriptRoot\TestData\dummymodule.psm1 $dummydir -Confirm:$False
+
+        $dummyFormatsDir = Join-Path $dummydir Formats
+        New-Item $dummyFormatsDir -ItemType Directory
+        New-Item (Join-Path $dummyFormatsDir dummymodule-format1.format.ps1xml) -ItemType File | Out-Null
+        New-Item (Join-Path $dummyFormatsDir dummymodule-format2.format.ps1xml) -ItemType File | Out-Null
+
+        It 'Should update the module manifest with formats to process' {
+            $FormatsToProcessFiles = Get-ChildItem $dummyFormatsDir\*.ps1xml | Foreach {
+                Join-Path .\Formats $_.Name
+            }
+            Set-ModuleFormats -Name $dummydir -FormatsToProcess $FormatsToProcessFiles
+            $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
+            $FormatsToProcess.Count | Should be 2
+            ".\Formats\dummymodule-format1.format.ps1xml", ".\Formats\dummymodule-format2.format.ps1xml" | Foreach {
+                $FormatsToProcess -contains $_ | Should Be $True
+            }
+        }
+
+        Remove-Item $dummydir -Force -Confirm:$False -Recurse
+    }
+
+    Context 'Can set FormatsToProcess using a relative path containing *.ps1xml type files' {
+        $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
+        Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
+        Copy-item $PSScriptRoot\TestData\dummymodule.psm1 $dummydir -Confirm:$False
+
+        $dummyFormatsDir = Join-Path $dummydir Formats
+        New-Item $dummyFormatsDir -ItemType Directory
+        New-Item (Join-Path $dummyFormatsDir dummymodule-format1.format.ps1xml) -ItemType File | Out-Null
+        New-Item (Join-Path $dummyFormatsDir dummymodule-format2.format.ps1xml) -ItemType File | Out-Null
+
+        It 'Should update the module manifest with formats to process' {
+            Set-ModuleFormats -Name $dummydir -FormatsRelativePath .\Formats
+            $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
+            $FormatsToProcess.Count | Should be 2
+            ".\Formats\dummymodule-format1.format.ps1xml", ".\Formats\dummymodule-format2.format.ps1xml" | Foreach {
+                $FormatsToProcess -contains $_ | Should Be $True
+            }
+        }
+
+        Remove-Item $dummydir -Force -Confirm:$False -Recurse
+    }
+}
+
+Describe 'Set-ModuleTypes' {
+    Context 'Can set TypesToProcess with an array of *.ps1xml files' {
+        $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
+        Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
+        Copy-item $PSScriptRoot\TestData\dummymodule.psm1 $dummydir -Confirm:$False
+
+        $dummyTypesDir = Join-Path $dummydir Types
+        New-Item $dummyTypesDir -ItemType Directory
+        New-Item (Join-Path $dummyTypesDir dummymodule-types1.types.ps1xml) -ItemType File | Out-Null
+        New-Item (Join-Path $dummyTypesDir dummymodule-types2.types.ps1xml) -ItemType File | Out-Null
+
+        It 'Should update the module manifest with types to process' {
+            $TypesToProcessFiles = Get-ChildItem $dummyTypesDir\*.ps1xml | Foreach {
+                Join-Path Types, $_.Name
+            }
+            Set-ModuleTypes -Name $dummydir -TypesToProcess
+            $TypesToProcess = Get-Metadat $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
+            $TypesToProcess.Count | Should be 2
+            "${dummyTypesDir}\dummymodule-types1.types.ps1xml", "${dummyTypesDir}\dummymodule-types1.types.ps1xml" | Foreach {
+                $TypesToProcess -contains $_ | Should Be $True
+            }
+        }
+
+        Get-ChildItem $dummydir -Recurse -Force | Remove-Item -Force -Confirm:$False
+    }
+
+    Context 'Can set TypesToProcess using a relative path containing *.ps1xml type files' {
+        $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
+        Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
+        Copy-item $PSScriptRoot\TestData\dummymodule.psm1 $dummydir -Confirm:$False
+
+        $dummyTypesDir = Join-Path $dummydir Types
+        New-Item $dummyTypesDir -ItemType Directory
+        New-Item (Join-Path $dummyTypesDir dummymodule-types1.types.ps1xml) -ItemType File | Out-Null
+        New-Item (Join-Path $dummyTypesDir dummymodule-types2.types.ps1xml) -ItemType File | Out-Null
+
+        It 'Should update the module manifest with types to process' {
+            Set-ModuleTypes -Name $dummydir -TypesRelativePath .\Types
+            $TypesToProcess = Get-Metadat $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
+            $TypesToProcess.Count | Should be 2
+            ".\Types\dummymodule-types1.types.ps1xml", ".\Types\dummymodule-types1.types.ps1xml" | Foreach {
+                $TypesToProcess -contains $_ | Should Be $True
+            }
+        }
+
+        Get-ChildItem $dummydir -Recurse -Force | Remove-Item -Force -Confirm:$False
+    }
+}
+
 Describe 'Set-ShieldsIoBadge' {
     Context 'dummy readme.md' {
         Set-Content -Path TestDrive:\readme.md -Value '![coverage]()'
