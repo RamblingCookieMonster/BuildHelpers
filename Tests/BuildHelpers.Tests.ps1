@@ -376,17 +376,17 @@ Describe 'Set-ModuleTypes' {
 
         It 'Should update the module manifest with types to process' {
             $TypesToProcessFiles = Get-ChildItem $dummyTypesDir\*.ps1xml | Foreach {
-                Join-Path Types, $_.Name
+                Join-Path .\Types $_.Name
             }
-            Set-ModuleTypes -Name $dummydir -TypesToProcess
-            $TypesToProcess = Get-Metadat $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
+            Set-ModuleTypes -Name $dummydir -TypesToProcess $TypesToProcessFiles
+            $TypesToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
             $TypesToProcess.Count | Should be 2
-            "${dummyTypesDir}\dummymodule-types1.types.ps1xml", "${dummyTypesDir}\dummymodule-types1.types.ps1xml" | Foreach {
+            ".\Types\dummymodule-types1.types.ps1xml", ".\Types\dummymodule-types1.types.ps1xml" | Foreach {
                 $TypesToProcess -contains $_ | Should Be $True
             }
         }
 
-        Get-ChildItem $dummydir -Recurse -Force | Remove-Item -Force -Confirm:$False
+        Remove-Item $dummydir -Force -Confirm:$False -Recurse
     }
 
     Context 'Can set TypesToProcess using a relative path containing *.ps1xml type files' {
@@ -401,14 +401,14 @@ Describe 'Set-ModuleTypes' {
 
         It 'Should update the module manifest with types to process' {
             Set-ModuleTypes -Name $dummydir -TypesRelativePath .\Types
-            $TypesToProcess = Get-Metadat $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
+            $TypesToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
             $TypesToProcess.Count | Should be 2
             ".\Types\dummymodule-types1.types.ps1xml", ".\Types\dummymodule-types1.types.ps1xml" | Foreach {
                 $TypesToProcess -contains $_ | Should Be $True
             }
         }
 
-        Get-ChildItem $dummydir -Recurse -Force | Remove-Item -Force -Confirm:$False
+        Remove-Item $dummydir -Force -Confirm:$False -Recurse
     }
 }
 
