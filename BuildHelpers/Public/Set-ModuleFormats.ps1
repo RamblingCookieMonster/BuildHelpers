@@ -91,7 +91,7 @@ function Set-ModuleFormats {
         if(-not $FormatsToProcess)
         {
             $FormatPath = Join-Path -Path $Parent -ChildPath $FormatsRelativePath
-            $FormatList = Get-ChildItem -Path $FormatPath\*.ps1xml
+            $FormatList = Get-ChildItem -Path (Join-Path $FormatPath "*.ps1xml")
 
             $FormatsToProcess = @()
             Foreach ($Item in $FormatList) {
