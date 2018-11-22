@@ -1,35 +1,35 @@
-function Set-ModuleFormats {
+function Set-ModuleTypes {
     <#
     .SYNOPSIS
-        EXPIRIMENTAL: Set FormatsToProcess
+        EXPIRIMENTAL: Set TypesToProcess
         
-        [string]$FormatsPath in a module manifest
+        [string]$TypesPath in a module manifest
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        EXPIRIMENTAL: Set FormatsToProcess
+        EXPIRIMENTAL: Set TypesToProcess
         
-        [string]$FormatsPath in a module manifest
+        [string]$TypesPath in a module manifest
 
     .PARAMETER Name
         Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
 
-    .PARAMETER FormatsToProcess
+    .PARAMETER TypesToProcess
         Array of .ps1xml files
 
-    .PARAMETER FormatsRelativePath
-        Path to the ps1xml files relatives to the root of the module (example: ".\Format")
+    .PARAMETER TypesRelativePath
+        Path to the ps1xml files relatives to the root of the module (example: ".\Types")
 
     .NOTES
         Major thanks to Joel Bennett for the code behind working with the psd1
             Source: https://github.com/PoshCode/Configuration
 
     .EXAMPLE
-        Set-ModuleFormats -FormatsRelativePath '.\Format'
+        Set-ModuleTypes -TypesRelativePath '.\Types'
 
-        Update module manifiest FormatsToProcess parameters with all the .ps1xml present in the .\Format folder. 
+        Update module manifiest TypesToProcess parameters with all the .ps1xml present in the .\Types folder. 
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -43,9 +43,9 @@ function Set-ModuleFormats {
         [Alias('Path')]
         [string]$Name,
 
-        [string[]]$FormatsToProcess,
+        [string[]]$TypesToProcess,
 
-        [string]$FormatsRelativePath
+        [string]$TypesRelativePath
     )
     Process
     {
@@ -88,18 +88,18 @@ function Set-ModuleFormats {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        if(-not $FormatsToProcess)
+        if(-not $TypesToProcess)
         {
-            $FormatPath = Join-Path -Path $Parent -ChildPath $FormatsRelativePath
-            $FormatList = Get-ChildItem -Path (Join-Path $FormatPath "*.ps1xml")
+            $TypesPath = Join-Path -Path $Parent -ChildPath $TypesRelativePath
+            $TypesList = Get-ChildItem -Path (Join-Path $TypesPath "*.ps1xml")
 
-            $FormatsToProcess = @()
-            Foreach ($Item in $FormatList) {
-                $FormatsToProcess += Join-Path -Path $FormatsRelativePath -ChildPath $Item.Name
+            $TypesToProcess = @()
+            Foreach ($Item in $TypesList) {
+                $TypesToProcess += Join-Path -Path $TypesRelativePath -ChildPath $Item.Name
             }
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+        Update-MetaData -Path $ModulePSD1Path -PropertyName TypesToProcess -Value $TypesToProcess
 
         # Close down the runspace
         $PowerShell.Dispose()
