@@ -69,13 +69,13 @@ function Get-BuildVariables {
             }
             $true
         })]
-        $GitPath = 'git'
+        $GitPath
     )
 
     $Path = ( Resolve-Path $Path ).Path
     $Environment = Get-Item ENV:
     if(!$PSboundParameters.ContainsKey('GitPath')) {
-        $GitPath = (Get-Command $GitPath -ErrorAction SilentlyContinue)[0].Path
+        $GitPath = (Get-ChildItem ($env:PATH -split ';') -filter git.exe -ErrorAction SilentlyContinue | Select-Object -First 1).Fullname
     }
 
     $WeCanGit = ( (Test-Path $( Join-Path $Path .git )) -and (Get-Command $GitPath -ErrorAction SilentlyContinue) )
