@@ -44,14 +44,28 @@ function Set-ModuleFunctions {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = (Resolve-Path $Name).Path
+            Name = (Resolve-Path $Name).ProviderPath
         }
 
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            try 
+            {
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force -ErrorAction Stop
+            }
+            catch
+            {
+                if ($PsItem.Exception.GetType().FullName -eq 'VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException')
+                {
+                    Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                }
+                else
+                {
+                    Write-error -ErrorRecord $PSItem -ErrorAction Stop
+                }
+            }
             $module | Where-Object {$_.Path -notin $module.Scripts}
         }).AddParameters($Params)
 

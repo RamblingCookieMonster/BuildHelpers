@@ -58,7 +58,7 @@ function Set-ModuleFormats {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = $Name
+            Name = (Resolve-Path $Name).ProviderPath
         }
 
         # Create a runspace
@@ -67,9 +67,22 @@ function Set-ModuleFormats {
         # Add scriptblock to the runspace
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            try
+            {
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            }
+            catch
+            {
+                if ($PsItem.Exception.GetType().FullName -eq 'VMware.VimAutomation.ViCore.Cmdlets.Provider.Exceptions.DriveException')
+                {
+                    Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                }
+                else
+                {
+                    Write-error -ErrorRecord $PSItem -ErrorAction Stop
+                }
+            }
             $module | Where-Object Path -notin $module.Scripts
-
         }).AddParameters($Params)
 
         #Invoke the command

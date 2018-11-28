@@ -288,7 +288,7 @@ Describe 'Invoke-Git' {
 Describe 'Get-ModuleFunctions' {
     Context 'dummymodule' {
         It 'Should return the functions output by a module' {
-            $Functions = Get-ModuleFunctions -Name $PSScriptRoot\TestData\dummymodule
+            $Functions = Get-ModuleFunctions -Name $PSScriptRoot\TestData\dummymodule.psd1
             $Functions.Count | Should be 3
             'a', 'b', 'c' | Foreach {
                 $Functions -contains $_ | Should Be $True
