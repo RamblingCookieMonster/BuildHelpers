@@ -41,6 +41,7 @@
         about_BuildHelpers
     #>
     [cmdletbinding()]
+    [OutputType( [Hashtable], [String])]
     param(
         [validateset('*',
                      'OperatingSystem',

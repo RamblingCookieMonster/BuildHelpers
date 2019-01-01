@@ -39,6 +39,7 @@
         about_BuildHelpers
     #>
     [cmdletbinding()]
+    [OutputType( [String] )]
     param(
         $Path = $PWD.Path
     )
