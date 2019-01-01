@@ -30,7 +30,7 @@
         https://github.com/RamblingCookieMonster/BuildHelpers
 
     .LINK
-        Get-BuildVariables
+        Get-BuildVariable
 
     .LINK
         Set-BuildEnvironment

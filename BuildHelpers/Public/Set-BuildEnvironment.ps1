@@ -10,10 +10,10 @@ function Set-BuildEnvironment {
         Normalize build system and project details into environment variables
 
         Creates the following environment variables:
-            $ENV:<VariableNamePrefix>ProjectPath      via Get-BuildVariables
-            $ENV:<VariableNamePrefix>BranchName       via Get-BuildVariables
-            $ENV:<VariableNamePrefix>CommitMessage    via Get-BuildVariables
-            $ENV:<VariableNamePrefix>BuildNumber      via Get-BuildVariables
+            $ENV:<VariableNamePrefix>ProjectPath      via Get-BuildVariable
+            $ENV:<VariableNamePrefix>BranchName       via Get-BuildVariable
+            $ENV:<VariableNamePrefix>CommitMessage    via Get-BuildVariable
+            $ENV:<VariableNamePrefix>BuildNumber      via Get-BuildVariable
             $ENV:<VariableNamePrefix>ProjectName      via Get-ProjectName
             $ENV:<VariableNamePrefix>PSModuleManifest via Get-PSModuleManifest
             $ENV:<VariableNamePrefix>ModulePath       via Split-Path on PSModuleManifest
@@ -70,7 +70,7 @@ function Set-BuildEnvironment {
         https://github.com/RamblingCookieMonster/BuildHelpers
 
     .LINK
-        Get-BuildVariables
+        Get-BuildVariable
 
     .LINK
         Get-BuildEnvironment

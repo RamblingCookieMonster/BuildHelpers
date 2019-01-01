@@ -1,35 +1,23 @@
-function Set-ModuleTypes {
+function Set-ModuleAlias {
     <#
     .SYNOPSIS
-        EXPIRIMENTAL: Set TypesToProcess
-
-        [string]$TypesPath in a module manifest
+        EXPIRIMENTAL: Set AliasesToExport in a module manifest
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        EXPIRIMENTAL: Set TypesToProcess
-
-        [string]$TypesPath in a module manifest
+        EXPIRIMENTAL: Set AliasesToExport in a module manifest
 
     .PARAMETER Name
-        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
-
-    .PARAMETER TypesToProcess
-        Array of .ps1xml files
-
-    .PARAMETER TypesRelativePath
-        Path to the ps1xml files relatives to the root of the module (example: ".\Types")
+        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariable
 
     .NOTES
         Major thanks to Joel Bennett for the code behind working with the psd1
             Source: https://github.com/PoshCode/Configuration
 
     .EXAMPLE
-        Set-ModuleTypes -TypesRelativePath '.\Types'
-
-        Update module manifiest TypesToProcess parameters with all the .ps1xml present in the .\Types folder.
+        Set-ModuleAlias
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -43,15 +31,13 @@ function Set-ModuleTypes {
         [Alias('Path')]
         [string]$Name,
 
-        [string[]]$TypesToProcess,
-
-        [string]$TypesRelativePath
+        [string[]]$AliasesToExport
     )
     Process
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
@@ -61,10 +47,8 @@ function Set-ModuleTypes {
             Name = $Name
         }
 
-        # Create a runspace
+        # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
-
-        # Add scriptblock to the runspace
         [void]$PowerShell.AddScript({
             Param ($Force, $Passthru, $Name)
             $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
@@ -72,12 +56,16 @@ function Set-ModuleTypes {
 
         }).AddParameters($Params)
 
-        #Invoke the command
+        #Consider moving this to a runspace or job to keep session clean
         $Module = $PowerShell.Invoke()
-
         if(-not $Module)
         {
             Throw "Could not find module '$Name'"
+        }
+
+        if(-not $AliasesToExport)
+        {
+            $AliasesToExport = @( $Module.ExportedAliases.Keys )
         }
 
         $Parent = $Module.ModuleBase
@@ -88,18 +76,7 @@ function Set-ModuleTypes {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        if(-not $TypesToProcess)
-        {
-            $TypesPath = Join-Path -Path $Parent -ChildPath $TypesRelativePath
-            $TypesList = Get-ChildItem -Path (Join-Path $TypesPath "*.ps1xml")
-
-            $TypesToProcess = @()
-            Foreach ($Item in $TypesList) {
-                $TypesToProcess += Join-Path -Path $TypesRelativePath -ChildPath $Item.Name
-            }
-        }
-
-        Update-MetaData -Path $ModulePSD1Path -PropertyName TypesToProcess -Value $TypesToProcess
+        Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
 
         # Close down the runspace
         $PowerShell.Dispose()

@@ -1,4 +1,4 @@
-function Set-ModuleFormats {
+function Set-ModuleFormat {
     <#
     .SYNOPSIS
         EXPIRIMENTAL: Set FormatsToProcess
@@ -14,7 +14,7 @@ function Set-ModuleFormats {
         [string]$FormatsPath in a module manifest
 
     .PARAMETER Name
-        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
+        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariable
 
     .PARAMETER FormatsToProcess
         Array of .ps1xml files
@@ -27,7 +27,7 @@ function Set-ModuleFormats {
             Source: https://github.com/PoshCode/Configuration
 
     .EXAMPLE
-        Set-ModuleFormats -FormatsRelativePath '.\Format'
+        Set-ModuleFormat -FormatsRelativePath '.\Format'
 
         Update module manifiest FormatsToProcess parameters with all the .ps1xml present in the .\Format folder.
 
@@ -51,7 +51,7 @@ function Set-ModuleFormats {
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 

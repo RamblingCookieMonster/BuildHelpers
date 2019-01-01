@@ -1,4 +1,4 @@
-﻿function Get-TeamCityProperties
+﻿function Get-TeamCityProperty
 {
     <#
     .SYNOPSIS
@@ -19,13 +19,13 @@
     We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-    Get-TeamCityProperties
+    Get-TeamCityProperty
 
     .LINK
     https://gist.github.com/piers7/6432985
 
     .LINK
-    Get-BuildVariables
+    Get-BuildVariable
     #>
     [OutputType([hashtable])]
     param(

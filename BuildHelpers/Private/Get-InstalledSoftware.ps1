@@ -58,7 +58,7 @@
                 "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
 
 
-        function Get-SoftwareKeys {
+        function Get-SoftwareKey {
             [cmdletbinding()]
             param(
                 $Reg,
@@ -171,7 +171,7 @@
             foreach($uninstallKey in $UninstallKeys)
             {
                 Write-Verbose "Checking [LocalMachine] [$uninstallKey] on [$computer]"
-                Get-SoftwareKeys -Reg $Reg -UninstallKey $uninstallKey -Hive 'HKLM'
+                Get-SoftwareKey -Reg $Reg -UninstallKey $uninstallKey -Hive 'HKLM'
             }
 
             Try
@@ -191,7 +191,7 @@
             foreach($uninstallKey in $UninstallKeys)
             {
                 Write-Verbose "Checking [CurrentUser] [$uninstallKey] on [$computer]"
-                Get-SoftwareKeys -Reg $Reg -UninstallKey $uninstallKey -Hive HKCU
+                Get-SoftwareKey -Reg $Reg -UninstallKey $uninstallKey -Hive HKCU
             }
         }
     }

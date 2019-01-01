@@ -21,7 +21,7 @@ Describe "$ModuleName PS$PSVersion" {
             $Module = @( Get-Module $ModuleName )
             $Module.Name -contains $ModuleName | Should be $True
             $Commands = $Module.ExportedCommands.Keys
-            $Commands -contains 'Get-BuildVariables' | Should Be $True
+            $Commands -contains 'Get-BuildVariable' | Should Be $True
         }
     }
 }
@@ -51,142 +51,142 @@ Describe "Get-ProjectName PS$PSVersion" {
 }
 
 Describe 'Step-Version' {
-    Context 'By Param' {               
+    Context 'By Param' {
         It 'Should increment the Patch level' {
             $result = Step-Version @Verbose 1.1.1
             $result | Should Be 1.1.2
         }
-        
+
         It 'Should increment the Minor level and set Patch level to 0' {
             $result = Step-Version @Verbose 1.1.1 Minor
             $result | Should Be 1.2.0
-        }      
-        
+        }
+
         It 'Should increment the Major level and set the Minor and Patch level to 0' {
             $result = Step-Version @Verbose 1.1.1 Major
             $result | Should Be 2.0.0
-        }        
+        }
     }
-    
+
     Context 'By Pipeline' {
         It 'Should increment the Patch level' {
             $result = [version]"1.1.1" | Step-Version @Verbose
             $result | Should Be 1.1.2
         }
-        
+
         It 'Should increment the Minor level and set Patch level to 0' {
             $result = $result = [version]"1.1.1" | Step-Version @Verbose -By Minor
             $result | Should Be 1.2.0
-        }      
-        
+        }
+
         It 'Should increment the Major level and set the Minor and Patch level to 0' {
             $result = $result = [version]"1.1.1" | Step-Version @Verbose -By Major
             $result | Should Be 2.0.0
-        }           
+        }
     }
 }
 
 Describe 'Step-ModuleVersion' {
     Context 'Basic Manifest' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
                             ModuleVersion = "1.1.1"
-                            Description = "A test module"    
+                            Description = "A test module"
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
         Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
 
-        $newManifest = Import-PowerShellDataFile @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1                
-        
+        $newManifest = Import-PowerShellDataFile @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
+
         It 'Passes Test-ModuleManifest' {
             Test-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1
             $? | Should Be $true
         }
-        
+
         It 'Should be at version 1.1.2' {
             $newManifest.ModuleVersion | Should Be 1.1.2
         }
-        
+
         It 'The other properties should be the same' {
             $newManifest.Guid | Should Be $manifestParams.Guid
             $newManifest.Author | Should Be $manifestParams.Author
             $newManifest.RootModule | Should Be $manifestParams.RootModule
-            $newManifest.Description | Should Be $manifestParams.Description            
+            $newManifest.Description | Should Be $manifestParams.Description
         }
     }
-    
+
     Context 'Basic Manifest in PWD' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\ -Name notamanifest.txt -ItemType File
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
                             ModuleVersion = "1.1.1"
-                            Description = "A test module"    
+                            Description = "A test module"
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
         Push-Location
-        Set-Location -Path TestDrive:\testmanifest\           
-               
+        Set-Location -Path TestDrive:\testmanifest\
+
         It 'Should be at version 1.1.2' {
             Step-ModuleVersion @Verbose
-            $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1   
+            $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
             $newManifest.ModuleVersion | Should Be 1.1.2
         }
 
         Pop-Location
-    }    
-    
+    }
+
     Context 'Basic Manifest with Minor step' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
                             ModuleVersion = "1.1.1"
-                            Description = "A test module"    
+                            Description = "A test module"
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
         Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1 -By Minor
 
-        $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1                
-        
+        $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
+
         It 'Passes Test-ModuleManifest' {
             Test-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1
             $? | Should Be $true
         }
-        
+
         It 'Should be at version 1.2.0' {
             $newManifest.ModuleVersion | Should Be 1.2.0
         }
-        
+
         It 'The other properties should be the same' {
             $newManifest.Guid | Should Be $manifestParams.Guid
             $newManifest.Author | Should Be $manifestParams.Author
             $newManifest.RootModule | Should Be $manifestParams.RootModule
-            $newManifest.Description | Should Be $manifestParams.Description            
+            $newManifest.Description | Should Be $manifestParams.Description
         }
-    }    
+    }
     Context 'Complex Manifest' {
-        
+
         New-Item -Path TestDrive:\ -Name testmanifest -ItemType Directory
         New-Item -Path TestDrive:\testmanifest -Name testmanifest.psm1 -ItemType File
-        
+
         $manifestParams = @{Guid = New-Guid
                             Author = "Name"
                             RootModule = "testmanifest.psm1"
@@ -201,40 +201,40 @@ Describe 'Step-ModuleVersion' {
                             RequiredModules = @("ModuleA","ModuleB")
                             ModuleList = @("ModuleX","ModuleY")
                         }
-        
+
         New-ModuleManifest -Path TestDrive:\testmanifest\testmanifest.psd1 @manifestParams
 
         Step-ModuleVersion @Verbose -Path TestDrive:\testmanifest\testmanifest.psd1
 
         $newManifest = Import-PowerShellDataFile -Path TestDrive:\testmanifest\testmanifest.psd1
-        
+
         It 'Should be at version 1.1.2' {
             $newManifest.ModuleVersion | Should Be 1.1.2
         }
-        
-        It 'Should have an properly formatted array for "FunctionsToExport"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "FunctionsToExport = 'Get-MyFunction', 'Set-MyFunction'" 
-        }
-        
-        It 'Should have an properly formatted array for "Tags"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "Tags = 'one', 'two', 'three'" 
-        }         
 
-        It 'Should have an properly formatted array for "NestedModules"' {		
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('NestedModules = @(''Module1'',')) 		
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'Module2')"))		
-        }     
+        It 'Should have an properly formatted array for "FunctionsToExport"' {
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "FunctionsToExport = 'Get-MyFunction', 'Set-MyFunction'"
+        }
+
+        It 'Should have an properly formatted array for "Tags"' {
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatchExactly "Tags = 'one', 'two', 'three'"
+        }
+
+        It 'Should have an properly formatted array for "NestedModules"' {
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('NestedModules = @(''Module1'','))
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'Module2')"))
+        }
 
         It 'Should have an properly formatted array for "RequiredModules"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('RequiredModules = @(''ModuleA'',')) 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('RequiredModules = @(''ModuleA'','))
             'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'ModuleB')"))
-        }       
-        
+        }
+
         It 'Should have an properly formatted array for "ModuleList"' {
-            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('ModuleList = @(''ModuleX'',')) 
+            'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape('ModuleList = @(''ModuleX'','))
             'TestDrive:\testmanifest\testmanifest.psd1' | Should -FileContentMatch ([regex]::Escape("               'ModuleY')"))
-        }                            
-        
+        }
+
         It 'The other properties should be the same' {
             $newManifest.Guid | Should Be $manifestParams.Guid
             $newManifest.Author | Should Be $manifestParams.Author
@@ -256,7 +256,7 @@ Describe 'Get-GitChangedFile' {
         #     @($Output).count | Should BeGreaterThan 0
         #     Test-Path @($Output)[0] | Should Be $true
         # }
-              
+
         It 'Should find files changed in a specified commit in this repo' {
             $Output = Get-GitChangedFile -Commit 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7 -ErrorAction SilentlyContinue -Include README*
             @($Output).count | Should Be 1
@@ -285,8 +285,15 @@ Describe 'Invoke-Git' {
     }
 }
 
-Describe 'Get-ModuleFunctions' {
+Describe 'Get-ModuleFunction' {
     Context 'dummymodule' {
+        It 'Should return the functions output by a module' {
+            $Functions = Get-ModuleFunction -Name $PSScriptRoot\TestData\dummymodule
+            $Functions.Count | Should be 3
+            'a', 'b', 'c' | Foreach {
+                $Functions -contains $_ | Should Be $True
+            }
+        }
         It 'Should return the functions output by a module' {
             $Functions = Get-ModuleFunctions -Name $PSScriptRoot\TestData\dummymodule
             $Functions.Count | Should be 3
@@ -297,11 +304,19 @@ Describe 'Get-ModuleFunctions' {
     }
 }
 
-Describe 'Set-ModuleFunctions' {
+Describe 'Set-ModuleFunction' {
     Context 'dummymodule' {
         $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
         Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
         Copy-item $PSScriptRoot\TestData\dummymodule.psm1 $dummydir -Confirm:$False
+        It 'Should update the module manifest with exported functions' {
+            Set-ModuleFunction -Name $dummydir
+            $Functions = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FunctionsToExport
+            $Functions.Count | Should be 3
+            'a', 'b', 'c' | Foreach {
+                $Functions -contains $_ | Should Be $True
+            }
+        }
         It 'Should update the module manifest with exported functions' {
             Set-ModuleFunctions -Name $dummydir
             $Functions = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FunctionsToExport
@@ -314,7 +329,7 @@ Describe 'Set-ModuleFunctions' {
     }
 }
 
-Describe 'Set-ModuleFormats' {
+Describe 'Set-ModuleFormat' {
     Context 'Can set FormatsToProcess with an array of *.ps1xml files' {
         $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
         Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
@@ -325,6 +340,17 @@ Describe 'Set-ModuleFormats' {
         New-Item (Join-Path $dummyFormatsDir dummymodule-format1.format.ps1xml) -ItemType File | Out-Null
         New-Item (Join-Path $dummyFormatsDir dummymodule-format2.format.ps1xml) -ItemType File | Out-Null
 
+        It 'Should update the module manifest with formats to process' {
+            $FormatsToProcessFiles = Get-ChildItem $dummyFormatsDir\*.ps1xml | Foreach {
+                Join-Path .\Formats $_.Name
+            }
+            Set-ModuleFormat -Name $dummydir -FormatsToProcess $FormatsToProcessFiles
+            $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
+            $FormatsToProcess.Count | Should be 2
+            ".\Formats\dummymodule-format1.format.ps1xml", ".\Formats\dummymodule-format2.format.ps1xml" | Foreach {
+                $FormatsToProcess -contains $_ | Should Be $True
+            }
+        }
         It 'Should update the module manifest with formats to process' {
             $FormatsToProcessFiles = Get-ChildItem $dummyFormatsDir\*.ps1xml | Foreach {
                 Join-Path .\Formats $_.Name
@@ -351,6 +377,14 @@ Describe 'Set-ModuleFormats' {
         New-Item (Join-Path $dummyFormatsDir dummymodule-format2.format.ps1xml) -ItemType File | Out-Null
 
         It 'Should update the module manifest with formats to process' {
+            Set-ModuleFormat -Name $dummydir -FormatsRelativePath .\Formats
+            $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
+            $FormatsToProcess.Count | Should be 2
+            ".\Formats\dummymodule-format1.format.ps1xml", ".\Formats\dummymodule-format2.format.ps1xml" | Foreach {
+                $FormatsToProcess -contains $_ | Should Be $True
+            }
+        }
+        It 'Should update the module manifest with formats to process' {
             Set-ModuleFormats -Name $dummydir -FormatsRelativePath .\Formats
             $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
             $FormatsToProcess.Count | Should be 2
@@ -363,7 +397,7 @@ Describe 'Set-ModuleFormats' {
     }
 }
 
-Describe 'Set-ModuleTypes' {
+Describe 'Set-ModuleType' {
     Context 'Can set TypesToProcess with an array of *.ps1xml files' {
         $dummydir = ( mkdir $PSScriptRoot\TestData\dummymodule ).FullName
         Copy-item $PSScriptRoot\TestData\dummymodule.psd1 $dummydir -Confirm:$False
@@ -378,7 +412,7 @@ Describe 'Set-ModuleTypes' {
             $TypesToProcessFiles = Get-ChildItem $dummyTypesDir\*.ps1xml | Foreach {
                 Join-Path .\Types $_.Name
             }
-            Set-ModuleTypes -Name $dummydir -TypesToProcess $TypesToProcessFiles
+            Set-ModuleType -Name $dummydir -TypesToProcess $TypesToProcessFiles
             $TypesToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
             $TypesToProcess.Count | Should be 2
             ".\Types\dummymodule-types1.types.ps1xml", ".\Types\dummymodule-types1.types.ps1xml" | Foreach {
@@ -400,7 +434,7 @@ Describe 'Set-ModuleTypes' {
         New-Item (Join-Path $dummyTypesDir dummymodule-types2.types.ps1xml) -ItemType File | Out-Null
 
         It 'Should update the module manifest with types to process' {
-            Set-ModuleTypes -Name $dummydir -TypesRelativePath .\Types
+            Set-ModuleType -Name $dummydir -TypesRelativePath .\Types
             $TypesToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName TypesToProcess
             $TypesToProcess.Count | Should be 2
             ".\Types\dummymodule-types1.types.ps1xml", ".\Types\dummymodule-types1.types.ps1xml" | Foreach {
