@@ -2,7 +2,7 @@ function Set-ModuleTypes {
     <#
     .SYNOPSIS
         EXPIRIMENTAL: Set TypesToProcess
-        
+
         [string]$TypesPath in a module manifest
 
     .FUNCTIONALITY
@@ -10,7 +10,7 @@ function Set-ModuleTypes {
 
     .DESCRIPTION
         EXPIRIMENTAL: Set TypesToProcess
-        
+
         [string]$TypesPath in a module manifest
 
     .PARAMETER Name
@@ -29,7 +29,7 @@ function Set-ModuleTypes {
     .EXAMPLE
         Set-ModuleTypes -TypesRelativePath '.\Types'
 
-        Update module manifiest TypesToProcess parameters with all the .ps1xml present in the .\Types folder. 
+        Update module manifiest TypesToProcess parameters with all the .ps1xml present in the .\Types folder.
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers

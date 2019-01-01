@@ -2,7 +2,7 @@ function Set-ModuleFormats {
     <#
     .SYNOPSIS
         EXPIRIMENTAL: Set FormatsToProcess
-        
+
         [string]$FormatsPath in a module manifest
 
     .FUNCTIONALITY
@@ -10,7 +10,7 @@ function Set-ModuleFormats {
 
     .DESCRIPTION
         EXPIRIMENTAL: Set FormatsToProcess
-        
+
         [string]$FormatsPath in a module manifest
 
     .PARAMETER Name
@@ -29,7 +29,7 @@ function Set-ModuleFormats {
     .EXAMPLE
         Set-ModuleFormats -FormatsRelativePath '.\Format'
 
-        Update module manifiest FormatsToProcess parameters with all the .ps1xml present in the .\Format folder. 
+        Update module manifiest FormatsToProcess parameters with all the .ps1xml present in the .\Format folder.
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers

@@ -44,7 +44,7 @@ function Join-Parts {
     .NOTES
         Credit to Rob C. and Michael S. from this post:
         http://stackoverflow.com/questions/9593535/best-way-to-join-parts-with-a-separator-in-powershell
-    
+
     #>
     [cmdletbinding()]
     param

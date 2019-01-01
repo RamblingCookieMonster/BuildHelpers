@@ -1,4 +1,4 @@
-﻿function Get-TeamCityProperties 
+﻿function Get-TeamCityProperties
 {
     <#
     .SYNOPSIS
@@ -6,14 +6,14 @@
     Doesn't do anything if not running under TeamCity
 
     .DESCRIPTION
-    Teamcity generates a build properties file and stores the location in the environent 
-    variable TEAMCITY_BUILD_PROPERTIES_FILE. 
+    Teamcity generates a build properties file and stores the location in the environent
+    variable TEAMCITY_BUILD_PROPERTIES_FILE.
 
     Loads the TeamCity system build properties into a hashtable.
 
     .PARAMETER propertiesfile
-    Path to properties xml file. Defaults to environent 
-    variable TEAMCITY_BUILD_PROPERTIES_FILE. 
+    Path to properties xml file. Defaults to environent
+    variable TEAMCITY_BUILD_PROPERTIES_FILE.
 
     .NOTES
     We assume you are in the project root, for several of the fallback options
@@ -25,7 +25,7 @@
     https://gist.github.com/piers7/6432985
 
     .LINK
-    Get-BuildVariables            
+    Get-BuildVariables
     #>
     [OutputType([hashtable])]
     param(
@@ -46,7 +46,7 @@
         {
             $buildProperties[$entry.Key] = $entry.'#text'
         }
-        
+
         Write-Output -InputObject $buildProperties
     }
 }

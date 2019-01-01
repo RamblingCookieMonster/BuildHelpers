@@ -8,7 +8,7 @@ function Invoke-LikeFilter {
         [string[]]$FilterArray, # Array of strings to filter on with a -like operator
         [switch]$Not # return items that are not -like...
     )
-    
+
     if($FilterArray.count -gt 0)
     {
         Write-Verbose "Running FilterArray [$FilterArray] against [$($Collection.count)] items"

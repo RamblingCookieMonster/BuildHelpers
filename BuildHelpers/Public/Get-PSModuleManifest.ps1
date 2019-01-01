@@ -55,7 +55,7 @@
     else
     {
         # Look for properly organized modules
-        $ProjectPaths = Get-ChildItem $Path -Directory | 
+        $ProjectPaths = Get-ChildItem $Path -Directory |
             ForEach-Object {
                 $ThisFolder = $_
                 $ExpectedManifest = Join-Path $ThisFolder.FullName "$($ThisFolder.Name).psd1"

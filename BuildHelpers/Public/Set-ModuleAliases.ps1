@@ -77,7 +77,7 @@ function Set-ModuleAliases {
         }
 
         Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
-        
+
         # Close down the runspace
         $PowerShell.Dispose()
     }

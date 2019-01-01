@@ -80,7 +80,7 @@
     {
         'PSVersionTable'   { $Details.set_item($_, $PSVersionTable)}
         'PSModulePath'     { $Details.set_item($_, ($ENV:PSModulePath -split ';'))}
-        'ModulesLoaded'    { $Details.set_item($_, ( 
+        'ModulesLoaded'    { $Details.set_item($_, (
             Get-Module |
                 Select Name, Version, Path |
                 Sort Name
@@ -88,11 +88,11 @@
         'ModulesAvailable' { $Details.set_item($_, (
             Get-Module -ListAvailable |
                 Select Name, Version, Path |
-                Sort Name            
-        
+                Sort Name
+
         )) }
         'Path'             { $Details.set_item($_, ( $ENV:Path -split ';'))}
-        'Variables'        { $Details.set_item($_, ( Get-Variable | Select Name, Value ))}       
+        'Variables'        { $Details.set_item($_, ( Get-Variable | Select Name, Value ))}
         'Software'         { $Details.set_item($_, (
             Get-InstalledSoftware |
                 Select DisplayName, Publisher, Version, Hive, Arch))}

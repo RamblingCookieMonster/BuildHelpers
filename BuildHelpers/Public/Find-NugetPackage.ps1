@@ -85,7 +85,7 @@ function Find-NugetPackage {
         $URI = Join-Parts -Separator / -Parts $PackageSourceUrl ,"Packages?`$filter=Id eq '$name'"
     }
 
-    Invoke-RestMethod $URI | 
+    Invoke-RestMethod $URI |
     Select-Object @{n='Name';ex={$_.title.('#text')}},
                   @{n='Author';ex={$_.author.name}},
                   @{n='Version';ex={

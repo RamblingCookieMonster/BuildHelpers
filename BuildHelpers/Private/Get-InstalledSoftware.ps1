@@ -38,15 +38,15 @@
         [Parameter(
             Position = 0,
             ValueFromPipeline=$true,
-            ValueFromPipelineByPropertyName=$true, 
+            ValueFromPipelineByPropertyName=$true,
             ValueFromRemainingArguments=$false
         )]
         [ValidateNotNullOrEmpty()]
         [Alias('CN','__SERVER','Server','Computer')]
             [string[]]$ComputerName = $env:computername,
-        
+
             [string]$DisplayName = $null,
-        
+
             [string]$Publisher = $null
     )
 
@@ -89,7 +89,7 @@
                     foreach($key in $subkeys)
                     {
                         #Build the full path to the key for this software
-                            $thisKey = $UninstallKey+"\\"+$key 
+                            $thisKey = $UninstallKey+"\\"+$key
 
                         #Open the subkey for this software
                             $thisSubKey = $null
@@ -101,7 +101,7 @@
                             {
                                 #Get the display name.  If this is not empty we know there is information to show
                                     $dispName = $thisSubKey.GetValue("DisplayName")
-                        
+
                                 #Get the publisher name ahead of time to allow filtering using Publisher parameter
                                     $pubName = $thisSubKey.GetValue("Publisher")
 
@@ -119,7 +119,7 @@
                                         DisplayName = $dispname
                                         Publisher = $pubName
                                         Version = $thisSubKey.GetValue("DisplayVersion")
-                                        UninstallString = $thisSubKey.GetValue("UninstallString") 
+                                        UninstallString = $thisSubKey.GetValue("UninstallString")
                                         InstallDate = $thisSubKey.GetValue("InstallDate")
                                         Hive = $Hive
                                         Arch = $Arch
