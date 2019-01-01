@@ -99,9 +99,8 @@
                 Select-Object DisplayName, Publisher, Version, Hive, Arch))}
         'Hotfixes'         { $Details.set_item($_, ( Get-Hotfix ))}
         'OperatingSystem'  { $Details.set_item($_, (
-            Get-WMIObject win32_operatingsystem |
-                Select-Object Caption,
-                       Version
+            Get-CimInstance -classname win32_operatingsystem |
+                Select-Object Caption, Version
         ))}
         'Location'         { $Details.set_item($_, ( Get-Location ).Path )}
         'PackageProvider'  { $Details.set_item($_, $(
