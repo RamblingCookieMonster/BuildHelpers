@@ -4,7 +4,6 @@ function Invoke-LikeFilter {
     param(
         $Collection, # Collection to filter
         $PropertyName, # Filter on this property in the Collection.  If not specified, use each item in collection
-        [object[]]$NestedPropertyName, # Filter on this array of nested properties in the Collection.  e.g. department, name = $Collection.Department.Name
         [string[]]$FilterArray, # Array of strings to filter on with a -like operator
         [switch]$Not # return items that are not -like...
     )
@@ -19,15 +18,6 @@ function Invoke-LikeFilter {
                 if($PropertyName)
                 {
                     if($_.$PropertyName -like $item)
-                    {
-                        $Status = $True
-                    }
-                }
-                elseif($NestedPropertyName)
-                {
-                    # Code injection, beware...
-                    $Value = Invoke-Expression "`$_.$($NestedPropertyName -join '.')"
-                    if($Value -like $item)
                     {
                         $Status = $True
                     }
