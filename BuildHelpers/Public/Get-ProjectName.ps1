@@ -59,7 +59,7 @@ function Get-ProjectName
             Where-Object {
             Test-Path $(Join-Path $_.FullName "$($_.name).psd1")
         } |
-            Select -ExpandProperty Fullname
+            Select-Object -ExpandProperty Fullname
 
         if( @($ProjectPaths).Count -gt 1 )
         {

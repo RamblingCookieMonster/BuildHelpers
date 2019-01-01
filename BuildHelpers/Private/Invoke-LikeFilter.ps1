@@ -12,7 +12,7 @@ function Invoke-LikeFilter {
     if($FilterArray.count -gt 0)
     {
         Write-Verbose "Running FilterArray [$FilterArray] against [$($Collection.count)] items"
-        $Collection | Where {
+        $Collection | Where-Object {
             $Status = $False
             foreach($item in $FilterArray)
             {

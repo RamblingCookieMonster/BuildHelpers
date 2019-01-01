@@ -87,7 +87,7 @@ function Get-GitChangedFile {
     if($Files.Count -gt 0)
     {
         $Params = @{Collection = $Files}
-        Write-Verbose "Found [$($Files.Count)] files with raw values:`n$($Files | Foreach {"'$_'"} | Out-String)"
+        Write-Verbose "Found [$($Files.Count)] files with raw values:`n$($Files | Foreach-Object {"'$_'"} | Out-String)"
         if($Include)
         {
             $Files = Invoke-LikeFilter @params -FilterArray $Include

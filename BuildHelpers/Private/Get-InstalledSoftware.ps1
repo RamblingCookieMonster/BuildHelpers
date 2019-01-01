@@ -123,7 +123,7 @@
                                         InstallDate = $thisSubKey.GetValue("InstallDate")
                                         Hive = $Hive
                                         Arch = $Arch
-                                    } | select ComputerName, DisplayName, Publisher, Version, Hive, Arch, UninstallString, InstallDate
+                                    } | Select-Object ComputerName, DisplayName, Publisher, Version, Hive, Arch, UninstallString, InstallDate
                                 }
                             }
                             Catch

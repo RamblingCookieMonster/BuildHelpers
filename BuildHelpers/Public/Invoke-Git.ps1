@@ -113,7 +113,7 @@
         {
             if($split)
             {
-                $stdout = $stdout -split "`n"  | Where {$_}
+                $stdout = $stdout -split "`n"  | Where-Object {$_}
             }
             $stdout = foreach($item in @($stdout)){
                 $item.trim()
@@ -123,7 +123,7 @@
         {
             if($split)
             {
-                $stderr = $stderr -split "`n" | Where {$_}
+                $stderr = $stderr -split "`n" | Where-Object {$_}
             }
             $stderr = foreach($item in @($stderr)){
                 $item.trim()
