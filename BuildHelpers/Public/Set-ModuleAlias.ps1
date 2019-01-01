@@ -25,7 +25,7 @@ function Set-ModuleAlias {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
@@ -76,7 +76,9 @@ function Set-ModuleAlias {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
+        If ($PSCmdlet.ShouldProcess("Updating Module's exported Aliases")) {
+            Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
+        }
 
         # Close down the runspace
         $PowerShell.Dispose()

@@ -37,7 +37,7 @@ function Set-ModuleFormat {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
@@ -99,7 +99,9 @@ function Set-ModuleFormat {
             }
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+        If ($PSCmdlet.ShouldProcess("Updating Module's FormatsToProcess")) {
+            Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+        }
 
         # Close down the runspace
         $PowerShell.Dispose()

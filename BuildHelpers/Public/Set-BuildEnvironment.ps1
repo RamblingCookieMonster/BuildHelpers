@@ -81,7 +81,8 @@ function Set-BuildEnvironment {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess = $false )]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
         [validatescript({ Test-Path $_ -PathType Container })]
         $Path = $PWD.Path,

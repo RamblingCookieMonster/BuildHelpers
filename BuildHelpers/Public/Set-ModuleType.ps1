@@ -37,7 +37,7 @@ function Set-ModuleType {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
@@ -99,7 +99,9 @@ function Set-ModuleType {
             }
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName TypesToProcess -Value $TypesToProcess
+        If ($PSCmdlet.ShouldProcess("Updating Module's TypesToProcess")) {
+            Update-MetaData -Path $ModulePSD1Path -PropertyName TypesToProcess -Value $TypesToProcess
+        }
 
         # Close down the runspace
         $PowerShell.Dispose()

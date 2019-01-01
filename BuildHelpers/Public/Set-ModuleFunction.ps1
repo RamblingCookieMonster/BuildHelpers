@@ -25,7 +25,7 @@ function Set-ModuleFunction {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
@@ -74,7 +74,9 @@ function Set-ModuleFunction {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
+        If ($PSCmdlet.ShouldProcess("Updating list of exported functions")) {
+            Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
+        }
 
         # Close down the runspace
         $PowerShell.Dispose()
