@@ -317,14 +317,6 @@ Describe 'Set-ModuleFunction' {
                 $Functions -contains $_ | Should Be $True
             }
         }
-        It 'Should update the module manifest with exported functions' {
-            Set-ModuleFunctions -Name $dummydir
-            $Functions = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FunctionsToExport
-            $Functions.Count | Should be 3
-            'a', 'b', 'c' | Foreach {
-                $Functions -contains $_ | Should Be $True
-            }
-        }
         Remove-Item $dummydir -Force -Confirm:$False -Recurse
     }
 }
@@ -351,17 +343,6 @@ Describe 'Set-ModuleFormat' {
                 $FormatsToProcess -contains $_ | Should Be $True
             }
         }
-        It 'Should update the module manifest with formats to process' {
-            $FormatsToProcessFiles = Get-ChildItem $dummyFormatsDir\*.ps1xml | Foreach {
-                Join-Path .\Formats $_.Name
-            }
-            Set-ModuleFormats -Name $dummydir -FormatsToProcess $FormatsToProcessFiles
-            $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
-            $FormatsToProcess.Count | Should be 2
-            ".\Formats\dummymodule-format1.format.ps1xml", ".\Formats\dummymodule-format2.format.ps1xml" | Foreach {
-                $FormatsToProcess -contains $_ | Should Be $True
-            }
-        }
 
         Remove-Item $dummydir -Force -Confirm:$False -Recurse
     }
@@ -378,14 +359,6 @@ Describe 'Set-ModuleFormat' {
 
         It 'Should update the module manifest with formats to process' {
             Set-ModuleFormat -Name $dummydir -FormatsRelativePath .\Formats
-            $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
-            $FormatsToProcess.Count | Should be 2
-            ".\Formats\dummymodule-format1.format.ps1xml", ".\Formats\dummymodule-format2.format.ps1xml" | Foreach {
-                $FormatsToProcess -contains $_ | Should Be $True
-            }
-        }
-        It 'Should update the module manifest with formats to process' {
-            Set-ModuleFormats -Name $dummydir -FormatsRelativePath .\Formats
             $FormatsToProcess = Get-Metadata $dummydir\dummymodule.psd1 -PropertyName FormatsToProcess
             $FormatsToProcess.Count | Should be 2
             ".\Formats\dummymodule-format1.format.ps1xml", ".\Formats\dummymodule-format2.format.ps1xml" | Foreach {
