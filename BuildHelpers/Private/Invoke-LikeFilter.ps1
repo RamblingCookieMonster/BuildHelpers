@@ -25,8 +25,8 @@ function Invoke-LikeFilter {
                 }
                 elseif($NestedPropertyName)
                 {
-                    # Code injection, beware...
-                    $Value = Invoke-Expression "`$_.$($NestedPropertyName -join '.')"
+                    $dump = $_
+                    $Value = $NestedPropertyName | Foreach-Object -process {$dump = $dump.$_} -end {$dump}
                     if($Value -like $item)
                     {
                         $Status = $True
