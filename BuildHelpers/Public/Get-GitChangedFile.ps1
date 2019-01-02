@@ -62,7 +62,7 @@ function Get-GitChangedFile {
         [switch]$Resolve
     )
     $Path = (Resolve-Path $Path).Path
-    $GitPathRaw = Invoke-Git rev-parse --show-toplevel -Path $Path
+    $GitPathRaw = (Invoke-Git rev-parse --show-toplevel -Path $Path).Output
     Write-Verbose "Found git root [$GitPathRaw]"
     $GitPath = Resolve-Path $GitPathRaw
     if(Test-Path $GitPath)
@@ -76,14 +76,14 @@ function Get-GitChangedFile {
 
     if(-not $PSBoundParameters.ContainsKey('Commit'))
     {
-        $Commit = Invoke-Git rev-parse HEAD -Path $GitPath
+        $Commit = (Invoke-Git rev-parse HEAD -Path $GitPath).Output
     }
     if(-not $Commit)
     {
         return
     }
 
-    [string[]]$Files = Invoke-Git "diff-tree --no-commit-id --name-only -r $Commit" -Path $GitPath
+    [string[]]$Files = (Invoke-Git diff-tree --no-commit-id --name-only -r $Commit -Path $GitPath).Output
     if($Files.Count -gt 0)
     {
         $Params = @{Collection = $Files}

@@ -1,119 +1,86 @@
 ﻿Function Invoke-Git {
     <#
-        .SYNOPSIS
-            Wrapper to invoke git and return streams
+    .SYNOPSIS
+        Wrapper to invoke git and return streams
 
-        .FUNCTIONALITY
-            CI/CD
+    .FUNCTIONALITY
+        CI/CD
 
-        .DESCRIPTION
-            Wrapper to invoke git and return streams
+    .DESCRIPTION
+        Wrapper to invoke git and return streams
 
-        .PARAMETER Arguments
-            If specified, call git with these arguments.
+    .PARAMETER Arguments
+        If specified, call git with these arguments.
 
-            This takes a positional argument and accepts all value afterwards for a more natural 'git-esque' use.
+        This takes a positional argument and accepts all value afterwards for a more natural 'git-esque' use.
 
-        .PARAMETER Path
-            Working directory to launch git within.  Defaults to current location
+    .PARAMETER Path
+        Working directory to launch git within.  Defaults to current location
 
-        .PARAMETER RedirectStandardError
-            Whether to capture standard error.  Defaults to $true
+    .PARAMETER GitPath
+        Path to git.  Defaults to git (i.e. git is in $ENV:PATH)
 
-        .PARAMETER RedirectStandardOutput
-            Whether to capture standard output.  Defaults to $true
+    .EXAMPLE
+        Invoke-Git rev-parse HEAD
 
-        .PARAMETER UseShellExecute
-            See System.Diagnostics.ProcessStartInfo.  Defaults to $false
+        # Get the current commit hash for HEAD
 
-        .PARAMETER Raw
-            If specified, return an object with the command, output, and error properties.
+    .EXAMPLE
+        Invoke-Git rev-parse HEAD -path C:\sc\PSStackExchange
 
-            Without Raw or Quiet, we return output if there's output, and we write an error if there are errors
+        # Get the current commit hash for HEAD for the repo located at C:\sc\PSStackExchange
 
-        .PARAMETER Split
-            If specified, split output and error on this.  Defaults to `n
+    .LINK
+        https://github.com/RamblingCookieMonster/BuildHelpers
 
-        .PARAMETER Quiet
-            If specified, do not return output
+    .LINK
+        about_BuildHelpers
+    #>
+    [cmdletbinding()]
+    param(
+        [parameter(Position = 0,
+                    ValueFromRemainingArguments = $true)]
+        $Arguments,
 
-        .PARAMETER GitPath
-            Path to git.  Defaults to git (i.e. git is in $ENV:PATH)
+        $Path = $PWD.Path,
 
-        .EXAMPLE
-            Invoke-Git rev-parse HEAD
-
-            # Get the current commit hash for HEAD
-
-        .EXAMPLE
-            Invoke-Git rev-parse HEAD -path C:\sc\PSStackExchange
-
-            # Get the current commit hash for HEAD for the repo located at C:\sc\PSStackExchange
-
-        .LINK
-            https://github.com/RamblingCookieMonster/BuildHelpers
-
-        .LINK
-            about_BuildHelpers
-        #>
-        [cmdletbinding()]
-        param(
-            [parameter(Position = 0,
-                       ValueFromRemainingArguments = $true)]
-            $Arguments,
-
-            $Path = $PWD.Path,
-
-            [switch]$Quiet,
-
-            [switch]$Raw,
-
-            [validatescript({
-                if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
-                {
-                    throw "Could not find command at GitPath [$_]"
-                }
-                $true
-            })]
-            [string]$GitPath = 'git'
-        )
-
-        $Path = (Resolve-Path $Path).Path
-        if(!$PSBoundParameters.ContainsKey('GitPath')) {
-            $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
-        }
-
-        $result = & $GitPath $Arguments 2>&1
-
-        if(-not $Quiet) {
-            $output = [pscustomobject]@{
-                Command = "$GitPath $Arguments"
-                Output = ""
-                Error = ""
-            }
-            if ($result.writeErrorStream)
+        [validatescript({
+            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
             {
-                $output.Error = $result.Exception.Message -join "`n"
+                throw "Could not find command at GitPath [$_]"
             }
-            else
-            {
-                $output.Output = $result -join "`n"
-            }
+            $true
+        })]
+        [string]$GitPath = 'git'
+    )
 
-            if($Raw)
-            {
-                $output
-            }
-            else
-            {
-                if ($result.writeErrorStream)
-                {
-                    $output.Error
-                }
-                else
-                {
-                    $output.Output
-                }
-            }
-        }
+    $Path = (Resolve-Path $Path).Path
+    if(!$PSBoundParameters.ContainsKey('GitPath')) {
+        $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
     }
+
+    try
+    {
+        Push-Location $Path
+        $result = & $GitPath $($Arguments -split " ") 2>&1
+    }
+    finally
+    {
+        Pop-Location
+    }
+
+    $output = [pscustomobject]@{
+        Command = "$GitPath $Arguments"
+        Output = ""
+        Error = ""
+    }
+    if ($result.writeErrorStream)
+    {
+        $output.Error = $result.Exception.Message
+    }
+    else
+    {
+        $output.Output = $result
+    }
+    $output
+}
