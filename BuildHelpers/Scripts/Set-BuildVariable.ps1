@@ -9,10 +9,10 @@
     Normalize build system and project details into variables
 
     Creates the following variables:
-        BHProjectPath      via Get-BuildVariables
-        BHBranchName       via Get-BuildVariables
-        BHCommitMessage    via Get-BuildVariables
-        BHBuildNumber      via Get-BuildVariables
+        BHProjectPath      via Get-BuildVariable
+        BHBranchName       via Get-BuildVariable
+        BHCommitMessage    via Get-BuildVariable
+        BHBuildNumber      via Get-BuildVariable
         BHProjectName      via Get-ProjectName
         BHPSModuleManifest via Get-PSModuleManifest
         BHModulePath     via Split-Path on BHPSModuleManifest
@@ -57,7 +57,7 @@
     https://github.com/RamblingCookieMonster/BuildHelpers
 
 .LINK
-    Get-BuildVariables
+    Get-BuildVariable
 
 .LINK
     Get-ProjectName
@@ -103,7 +103,7 @@ else
     }
 }
 
-${Build.Vars} = Get-BuildVariables -Path $Path
+${Build.Vars} = Get-BuildVariable -Path $Path
 ${Build.ProjectName} = Get-ProjectName -Path $Path
 ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
 $BuildHelpersVariables = @{

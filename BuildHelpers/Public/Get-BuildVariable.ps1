@@ -1,4 +1,4 @@
-function Get-BuildVariables {
+function Get-BuildVariable {
     <#
     .SYNOPSIS
         Normalize build system variables
@@ -45,7 +45,7 @@ function Get-BuildVariables {
         We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-        Get-BuildVariables
+        Get-BuildVariable
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -86,7 +86,7 @@ function Get-BuildVariables {
             GitPath = $GitPath
         }
     }
-    $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
+    $tcProperties = Get-TeamCityProperty # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
 
     # Determine the build system:
     $BuildSystem = switch ($Environment.Name)
