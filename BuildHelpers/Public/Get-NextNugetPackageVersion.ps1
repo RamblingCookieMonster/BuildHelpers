@@ -12,7 +12,7 @@
         Uses the versioning scheme adopted by the user
 
         Where possible, users should stick to semver: http://semver.org/ (Major.Minor.Patch, given restrictions .NET Version class)
-        
+
         If no existing module is found, we return 0.0.1
 
     .PARAMETER Name

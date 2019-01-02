@@ -1,4 +1,4 @@
-function Get-ModuleFunctions {
+function Get-ModuleFunction {
     <#
     .SYNOPSIS
         List functions imported by a module
@@ -16,7 +16,7 @@ function Get-ModuleFunctions {
         We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-        Get-ModuleFunctions
+        Get-ModuleFunction
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -34,7 +34,7 @@ function Get-ModuleFunctions {
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 

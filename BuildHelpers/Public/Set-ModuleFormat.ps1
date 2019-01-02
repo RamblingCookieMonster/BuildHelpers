@@ -1,35 +1,35 @@
-function Set-ModuleTypes {
+function Set-ModuleFormat {
     <#
     .SYNOPSIS
-        EXPIRIMENTAL: Set TypesToProcess
-        
-        [string]$TypesPath in a module manifest
+        EXPIRIMENTAL: Set FormatsToProcess
+
+        [string]$FormatsPath in a module manifest
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        EXPIRIMENTAL: Set TypesToProcess
-        
-        [string]$TypesPath in a module manifest
+        EXPIRIMENTAL: Set FormatsToProcess
+
+        [string]$FormatsPath in a module manifest
 
     .PARAMETER Name
-        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
+        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariable
 
-    .PARAMETER TypesToProcess
+    .PARAMETER FormatsToProcess
         Array of .ps1xml files
 
-    .PARAMETER TypesRelativePath
-        Path to the ps1xml files relatives to the root of the module (example: ".\Types")
+    .PARAMETER FormatsRelativePath
+        Path to the ps1xml files relatives to the root of the module (example: ".\Format")
 
     .NOTES
         Major thanks to Joel Bennett for the code behind working with the psd1
             Source: https://github.com/PoshCode/Configuration
 
     .EXAMPLE
-        Set-ModuleTypes -TypesRelativePath '.\Types'
+        Set-ModuleFormat -FormatsRelativePath '.\Format'
 
-        Update module manifiest TypesToProcess parameters with all the .ps1xml present in the .\Types folder. 
+        Update module manifiest FormatsToProcess parameters with all the .ps1xml present in the .\Format folder.
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -37,21 +37,21 @@ function Set-ModuleTypes {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
         [string]$Name,
 
-        [string[]]$TypesToProcess,
+        [string[]]$FormatsToProcess,
 
-        [string]$TypesRelativePath
+        [string]$FormatsRelativePath
     )
     Process
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
@@ -88,18 +88,20 @@ function Set-ModuleTypes {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        if(-not $TypesToProcess)
+        if(-not $FormatsToProcess)
         {
-            $TypesPath = Join-Path -Path $Parent -ChildPath $TypesRelativePath
-            $TypesList = Get-ChildItem -Path (Join-Path $TypesPath "*.ps1xml")
+            $FormatPath = Join-Path -Path $Parent -ChildPath $FormatsRelativePath
+            $FormatList = Get-ChildItem -Path (Join-Path $FormatPath "*.ps1xml")
 
-            $TypesToProcess = @()
-            Foreach ($Item in $TypesList) {
-                $TypesToProcess += Join-Path -Path $TypesRelativePath -ChildPath $Item.Name
+            $FormatsToProcess = @()
+            Foreach ($Item in $FormatList) {
+                $FormatsToProcess += Join-Path -Path $FormatsRelativePath -ChildPath $Item.Name
             }
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName TypesToProcess -Value $TypesToProcess
+        If ($PSCmdlet.ShouldProcess("Updating Module's FormatsToProcess")) {
+            Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+        }
 
         # Close down the runspace
         $PowerShell.Dispose()

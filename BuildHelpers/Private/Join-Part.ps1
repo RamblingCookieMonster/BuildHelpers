@@ -1,4 +1,4 @@
-function Join-Parts {
+function Join-Part {
     <#
     .SYNOPSIS
         Join strings with a specified separator.
@@ -17,24 +17,24 @@ function Join-Parts {
         Strings to join
 
     .EXAMPLE
-        Join-Parts -Separator "/" this //should $Null /work/ /well
+        Join-Part -Separator "/" this //should $Null /work/ /well
 
         # Output: this/should/work/well
 
     .EXAMPLE
-        Join-Parts -Parts http://this.com, should, /work/, /wel
+        Join-Part -Parts http://this.com, should, /work/, /wel
 
         # Output: http://this.com/should/work/wel
 
     .EXAMPLE
-        Join-Parts -Separator "?" this ?should work ???well
+        Join-Part -Separator "?" this ?should work ???well
 
         # Output: this?should?work?well
 
     .EXAMPLE
 
         $CouldBeOneOrMore = @( "JustOne" )
-        Join-Parts -Separator ? -Parts CouldBeOneOrMore
+        Join-Part -Separator ? -Parts CouldBeOneOrMore
 
         # Output JustOne
 
@@ -43,8 +43,8 @@ function Join-Parts {
 
     .NOTES
         Credit to Rob C. and Michael S. from this post:
-        http://stackoverflow.com/questions/9593535/best-way-to-join-parts-with-a-separator-in-powershell
-    
+        http://stackoverflow.com/questions/9593535/best-way-to-Join-Part-with-a-separator-in-powershell
+
     #>
     [cmdletbinding()]
     param
