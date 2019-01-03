@@ -7,18 +7,18 @@
 .EXAMPLE
     C:\PS> Step-Version 1.1.1
     1.1.2
-    
+
     Will increment the Patch/Build section of the Version
 .EXAMPLE
     C:\PS> Step-Version 1.1.1 Minor
     1.2.0
-    
+
     Will increment the Minor section of the Version
 .EXAMPLE
     C:\PS> Step-Version 1.1.1 Major
     2.0.0
-    
-    Will increment the Major section of the Version    
+
+    Will increment the Major section of the Version
 .EXAMPLE
     C:\PS> $v = [version]"1.1.1"
     C:\PS> $v | Step-Version -Type Minor
@@ -26,7 +26,7 @@
 .INPUTS
     String
 .OUTPUTS
-    String    
+    String
 .NOTES
     This function operates on strings.
 #>
@@ -40,7 +40,7 @@ function Step-Version {
                    Position=0)]
         [String]
         $Version,
-        
+
         # Version section to step
         [Parameter(Position=1)]
         [ValidateSet("Major", "Minor", "Build","Patch")]
@@ -52,11 +52,11 @@ function Step-Version {
     Process
     {
         $currentVersion = [version]$Version
-        
+
         $major = $currentVersion.Major
         $minor = $currentVersion.Minor
         $build = $currentVersion.Build
-        
+
         switch ($By) {
             "Major" { $major++
                     $minor = 0
@@ -68,10 +68,10 @@ function Step-Version {
             Default { $build++
                     break }
         }
-        
+
         $newVersion = New-Object Version -ArgumentList $major, $minor, $build
 
         Write-Output -InputObject $newVersion.ToString()
-    }  
+    }
 }
 

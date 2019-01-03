@@ -29,7 +29,7 @@ Pull requests and other contributions welcome!
     Get-Command -Module BuildHelpers
 
 # Get help
-    Get-Help Get-BuildVariables -Full
+    Get-Help Get-BuildVariable -Full
     Get-Help about_BuildHelpers
 ```
 
@@ -38,10 +38,10 @@ Pull requests and other contributions welcome!
 ### Get Normalized Build Variables
 
 ```powershell
-Get-BuildVariables
+Get-BuildVariable
 
 # We assume you're in the project root. If not, specify a path:
-Get-BuildVariables -Path C:\MyProjectRoot
+Get-BuildVariable -Path C:\MyProjectRoot
 ```
 
 ### Get Project Name
@@ -111,7 +111,7 @@ Here's an example, having run Set-BuildEnvironment in an AppVeyor project:
 
 During the module authoring process, updating FunctionsToExport can be tedious, so many folks leave this set to '*', missing out on module auto-loading and other benefits.
 
-To get the best of both worlds, use FunctionsToExport='*', and use Set-ModuleFunctions in your build before deployment:
+To get the best of both worlds, use FunctionsToExport='*', and use Set-ModuleFunction in your build before deployment:
 
 ```powershell
 # Set your build environment (we use this to get psd1 path)
@@ -122,8 +122,8 @@ Select-String -Path .\PSSlack\PSSlack.psd1 -Pattern FunctionsToExport
 
     # PSSlack\PSSlack.psd1:61:FunctionsToExport = '*'
 
-# Update the psd1 with Set-ModuleFunctions:
-Set-ModuleFunctions
+# Update the psd1 with Set-ModuleFunction:
+Set-ModuleFunction
 
 # Check FunctionsToExport again:
 Select-String -Path .\PSSlack\PSSlack.psd1 -Pattern FunctionsToExport
@@ -137,7 +137,7 @@ Typical examples take an existing PSD1 file and bump the module version from tha
 
 ```powershell
 # Get the latest version for a project
-$Version = Get-NextPSGalleryVersion -Name $env:BHProjectName
+$Version = Get-NextNugetPackageVersion -Name $env:BHProjectName
 
 # Update the module metadata with the new version - thanks to Joel Bennett for this function!
 Update-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -Value $Version
@@ -145,4 +145,4 @@ Update-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -Value
 
 ## Notes
 
-Thanks to Joel Bennett for the ConvertTo-Metadata function that we use in Set-ModuleFunctions!
+Thanks to Joel Bennett for the ConvertTo-Metadata function that we use in Set-ModuleFunction!

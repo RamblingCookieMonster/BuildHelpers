@@ -1,9 +1,8 @@
-function Set-ModuleFormats
-{
+function Set-ModuleFormat {
     <#
     .SYNOPSIS
         EXPIRIMENTAL: Set FormatsToProcess
-        
+
         [string]$FormatsPath in a module manifest
 
     .FUNCTIONALITY
@@ -11,11 +10,11 @@ function Set-ModuleFormats
 
     .DESCRIPTION
         EXPIRIMENTAL: Set FormatsToProcess
-        
+
         [string]$FormatsPath in a module manifest
 
     .PARAMETER Name
-        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
+        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariable
 
     .PARAMETER FormatsToProcess
         Array of .ps1xml files
@@ -28,9 +27,9 @@ function Set-ModuleFormats
             Source: https://github.com/PoshCode/Configuration
 
     .EXAMPLE
-        Set-ModuleFormats -FormatsRelativePath '.\Format'
+        Set-ModuleFormat -FormatsRelativePath '.\Format'
 
-        Update module manifiest FormatsToProcess parameters with all the .ps1xml present in the .\Format folder. 
+        Update module manifiest FormatsToProcess parameters with all the .ps1xml present in the .\Format folder.
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -38,10 +37,9 @@ function Set-ModuleFormats
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
-        [ValidateNotNullOrEmpty()]
         [Alias('Path')]
         [string]$Name,
 
@@ -53,7 +51,7 @@ function Set-ModuleFormats
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
@@ -68,11 +66,11 @@ function Set-ModuleFormats
 
         # Add scriptblock to the runspace
         [void]$PowerShell.AddScript({
-                Param ($Force, $Passthru, $Name)
-                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-                $module | Where-Object Path -notin $module.Scripts
+            Param ($Force, $Passthru, $Name)
+            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            $module | Where-Object Path -notin $module.Scripts
 
-            }).AddParameters($Params)
+        }).AddParameters($Params)
 
         #Invoke the command
         $Module = $PowerShell.Invoke()
@@ -93,16 +91,17 @@ function Set-ModuleFormats
         if(-not $FormatsToProcess)
         {
             $FormatPath = Join-Path -Path $Parent -ChildPath $FormatsRelativePath
-            $FormatList = Get-ChildItem -Path $FormatPath\*.ps1xml
+            $FormatList = Get-ChildItem -Path (Join-Path $FormatPath "*.ps1xml")
 
             $FormatsToProcess = @()
-            Foreach ($Item in $FormatList)
-            {
+            Foreach ($Item in $FormatList) {
                 $FormatsToProcess += Join-Path -Path $FormatsRelativePath -ChildPath $Item.Name
             }
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+        If ($PSCmdlet.ShouldProcess("Updating Module's FormatsToProcess")) {
+            Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+        }
 
         # Close down the runspace
         $PowerShell.Dispose()

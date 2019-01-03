@@ -4,7 +4,7 @@
 RootModule = 'BuildHelpers.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.0'
+ModuleVersion = '2.0.0'
 
 # ID used to uniquely identify this module
 GUID = 'ec079170-28b7-40b4-aaae-f8ebf76850ab'
@@ -67,7 +67,7 @@ CmdletsToExport = '*'
 VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport = 'Set-BuildVariable'
+AliasesToExport = @('Set-BuildVariable', 'Get-NextPSGalleryVersion')
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -96,7 +96,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = "This release will load an external copy of Joel Bennett's Configuration module if we find one on your system, and it is newer than the embedded Configuration module"
 
     } # End of PSData hashtable
 

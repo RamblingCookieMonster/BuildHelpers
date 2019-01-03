@@ -74,34 +74,30 @@ function Find-NugetPackage
     if($IsLatest)
     {
         Write-Verbose "Searching for latest [$name] module"
-        $URI = Join-Parts -Separator / -Parts $PackageSourceUrl, "Packages?`$filter=Id eq '$name' and IsLatestVersion"
+        $URI = Join-Part -Separator / -Parts $PackageSourceUrl, "Packages?`$filter=Id eq '$name' and IsLatestVersion"
     }
     elseif($PSBoundParameters.ContainsKey($Version))
     {
         Write-Verbose "Searching for version [$version] of [$name]"
-        $URI = Join-Parts -Separator / -Parts $PackageSourceUrl, "Packages?`$filter=Id eq '$name' and Version eq '$Version'"
+        $URI = Join-Part -Separator / -Parts $PackageSourceUrl, "Packages?`$filter=Id eq '$name' and Version eq '$Version'"
     }
     else
     {
         Write-Verbose "Searching for all versions of [$name] module"
-        $URI = Join-Parts -Separator / -Parts $PackageSourceUrl ,"Packages?`$filter=Id eq '$name'"
+        $URI = Join-Part -Separator / -Parts $PackageSourceUrl ,"Packages?`$filter=Id eq '$name'"
     }
 
-    Invoke-RestMethod $URI | 
-        Select-Object @{n='Name';ex={$_.title.('#text')}},
-    @{n='Author';ex={$_.author.name}},
-    @{n='Version';ex={
-            if($_.properties.NormalizedVersion)
-            {
-                $_.properties.NormalizedVersion
-            }
-            else
-            {
-                $_.properties.Version
-            }
-        }
-    },
-    @{n='Uri';ex={$_.Content.src}},
-    @{n='Description';ex={$_.properties.Description}},
-    @{n='Properties';ex={$_.properties}}
+    Invoke-RestMethod $URI |
+    Select-Object @{n='Name';ex={$_.title.('#text')}},
+                  @{n='Author';ex={$_.author.name}},
+                  @{n='Version';ex={
+                    if($_.properties.NormalizedVersion){
+                      $_.properties.NormalizedVersion
+                    }else{
+                      $_.properties.Version
+                    }
+                  }},
+                  @{n='Uri';ex={$_.Content.src}},
+                  @{n='Description';ex={$_.properties.Description}},
+                  @{n='Properties';ex={$_.properties}}
 }

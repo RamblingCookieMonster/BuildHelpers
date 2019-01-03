@@ -65,7 +65,7 @@ function Get-GitChangedFile {
     $Path = Get-FullPath $Path
     $GitPathRaw = Invoke-Git rev-parse --show-toplevel -Path $Path
     Write-Verbose "Found git root [$GitPathRaw]"
-    $GitPath = Resolve-Path $GitPathRaw
+    $GitPath = Get-FullPath $GitPathRaw
     if(Test-Path $GitPath)
     {
         Write-Verbose "Using [$GitPath] as repo root"
@@ -88,7 +88,7 @@ function Get-GitChangedFile {
     if($Files.Count -gt 0)
     {
         $Params = @{Collection = $Files}
-        Write-Verbose "Found [$($Files.Count)] files with raw values:`n$($Files | Foreach {"'$_'"} | Out-String)"
+        Write-Verbose "Found [$($Files.Count)] files with raw values:`n$($Files | Foreach-Object {"'$_'"} | Out-String)"
         if($Include)
         {
             $Files = Invoke-LikeFilter @params -FilterArray $Include

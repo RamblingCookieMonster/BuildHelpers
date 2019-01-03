@@ -1,8 +1,8 @@
-﻿function Get-NextPSGalleryVersion {
+﻿function Get-NextPowerShellGetVersion {
     <#
     .SYNOPSIS
         DEPRECATED: Please use Get-NextNugetPackageVersion
-        
+
         Get the next version for a module or script in the PowerShell Gallery
 
     .FUNCTIONALITY
@@ -18,7 +18,7 @@
         Where possible, users should stick to semver: http://semver.org/ (Major.Minor.Patch, given restrictions .NET Version class)
 
         This requires the PowerShellGet module
-        
+
         If no existing module is found, we return 0.0.1
 
     .PARAMETER Name
@@ -28,10 +28,10 @@
         Module or script.  Defaults to module.
 
     .EXAMPLE
-        Get-NextPSGalleryVersion PSDeploy
+        Get-NextPowerShellGetVersion PSDeploy
 
     .EXAMPLE
-        Get-NextPSGalleryVersion Open-ISEFunction -Type Script
+        Get-NextPowerShellGetVersion Open-ISEFunction -Type Script
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -60,7 +60,7 @@
                 if ($Type -eq 'Module') {
                     $Existing = Find-Module -Name $Item -Repository $Repository -ErrorAction Stop
                 }
-                else { 
+                else {
                     # Script
                     $Existing = Find-Script -Name $Item -Repository $Repository -ErrorAction Stop
                 }
@@ -108,6 +108,6 @@
             else {
                 New-Object System.Version ($Version.Major + 1, 0)
             }
-        }   
+        }
 }
 }

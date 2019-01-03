@@ -32,7 +32,7 @@ function Get-ProjectName
         https://github.com/RamblingCookieMonster/BuildHelpers
 
     .LINK
-        Get-BuildVariables
+        Get-BuildVariable
 
     .LINK
         Set-BuildEnvironment
@@ -59,7 +59,7 @@ function Get-ProjectName
             Where-Object {
             Test-Path $(Join-Path $_.FullName "$($_.name).psd1")
         } |
-            Select -ExpandProperty Fullname
+            Select-Object -ExpandProperty Fullname
 
         if( @($ProjectPaths).Count -gt 1 )
         {
@@ -90,7 +90,7 @@ function Get-ProjectName
             $result = Split-Path $Path -Leaf
         }
     }
-    
+
     if ($env:APPVEYOR_PROJECT_NAME -and $env:APPVEYOR_JOB_ID -and ($result -like $env:APPVEYOR_PROJECT_NAME))
     {
         $env:APPVEYOR_PROJECT_NAME

@@ -1,5 +1,5 @@
 ﻿Function Invoke-Git {
-    <#
+<#
     .SYNOPSIS
         Wrapper to invoke git and return streams
 
@@ -58,92 +58,95 @@
     #>
     [cmdletbinding()]
     param(
-        [parameter(
-            Position = 0,
-            ValueFromRemainingArguments = $true
-        )]
-        [String]$Arguments,
+        [parameter(Position = 0,
+                   ValueFromRemainingArguments = $true)]
+        $Arguments,
 
-        [Bool]$NoWindow = $true,
-        [Bool]$RedirectStandardError = $true,
-        [Bool]$RedirectStandardOutput = $true,
-        [Bool]$UseShellExecute = $false,
-        [String]$Path = $PWD.Path,
-        [Switch]$Quiet,
-        [String]$Split = "`n",
-        [Switch]$Raw,
-        [validatescript(
+        $NoWindow = $true,
+        $RedirectStandardError = $true,
+        $RedirectStandardOutput = $true,
+        $UseShellExecute = $false,
+        $Path = $PWD.Path,
+        $Quiet,
+        $Split = "`n",
+        $Raw,
+        [validatescript({
+            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
             {
-                if (-not (Get-Command $_ -ErrorAction SilentlyContinue)) {
-                    throw "Could not find command at GitPath [$_]"
-                }
-                $true
+                throw "Could not find command at GitPath [$_]"
             }
-        )]
-        [String]$GitPath = 'git'
+            $true
+        })]
+        [string]$GitPath = 'git'
     )
 
-    Begin {
-        $Path = Get-FullPath $Path
-        if (!$PSBoundParameters.ContainsKey('GitPath')) {
-            $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
-        }
-        $Command = $GitPath
+    $Path = Get-FullPath $Path
+    # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
+    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    if(!$PSBoundParameters.ContainsKey('GitPath')) {
+        $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
     }
-
-    Process {
-        # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
-        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-        $pinfo.FileName = $GitPath
-        $pinfo.CreateNoWindow = $NoWindow
-        $pinfo.RedirectStandardError = $RedirectStandardError
-        $pinfo.RedirectStandardOutput = $RedirectStandardOutput
-        $pinfo.UseShellExecute = $UseShellExecute
-        $pinfo.WorkingDirectory = $Path
-        if ($PSBoundParameters.ContainsKey('Arguments')) {
-            $pinfo.Arguments = $Arguments
-            $Command = "$Command $Arguments"
+    $pinfo.FileName = $GitPath
+    $Command = $GitPath
+    $pinfo.CreateNoWindow = $NoWindow
+    $pinfo.RedirectStandardError = $RedirectStandardError
+    $pinfo.RedirectStandardOutput = $RedirectStandardOutput
+    $pinfo.UseShellExecute = $UseShellExecute
+    $pinfo.WorkingDirectory = $Path
+    if($PSBoundParameters.ContainsKey('Arguments'))
+    {
+        $pinfo.Arguments = $Arguments
+        $Command = "$Command $Arguments"
+    }
+    $p = New-Object System.Diagnostics.Process
+    $p.StartInfo = $pinfo
+    $null = $p.Start()
+    $p.WaitForExit()
+    if($Quiet)
+    {
+        return
+    }
+    else
+    {
+        #there was a newline in output...
+        if($stdout = $p.StandardOutput.ReadToEnd())
+        {
+            if($split)
+            {
+                $stdout = $stdout -split "`n"  | Where-Object {$_}
+            }
+            $stdout = foreach($item in @($stdout)){
+                $item.trim()
+            }
         }
-        $p = New-Object System.Diagnostics.Process
-        $p.StartInfo = $pinfo
-        $null = $p.Start()
-        $p.WaitForExit()
-        if ($Quiet) {
-            return
+        if($stderr = $p.StandardError.ReadToEnd())
+        {
+            if($split)
+            {
+                $stderr = $stderr -split "`n" | Where-Object {$_}
+            }
+            $stderr = foreach($item in @($stderr)){
+                $item.trim()
+            }
         }
-        else {
-            #there was a newline in output...
-            if ($stdout = $p.StandardOutput.ReadToEnd()) {
-                if ($split) {
-                    $stdout = $stdout -split "`n"  | Where {$_}
-                }
-                $stdout = foreach ($item in @($stdout)) {
-                    $item.trim()
-                }
-            }
-            if ($stderr = $p.StandardError.ReadToEnd()) {
-                if ($split) {
-                    $stderr = $stderr -split "`n" | Where {$_}
-                }
-                $stderr = foreach ($item in @($stderr)) {
-                    $item.trim()
-                }
-            }
 
-            if ($Raw) {
-                [pscustomobject]@{
-                    Command = $Command
-                    Output  = $stdout
-                    Error   = $stderr
-                }
+        if($Raw)
+        {
+            [pscustomobject]@{
+                Command = $Command
+                Output = $stdout
+                Error = $stderr
             }
-            else {
-                if ($stdout) {
-                    $stdout
-                }
-                if ($stderr) {
-                    Write-Error $stderr.trim()
-                }
+        }
+        else
+        {
+            if($stdout)
+            {
+                $stdout
+            }
+            if($stderr)
+            {
+                Write-Error $stderr.trim()
             }
         }
     }

@@ -1,5 +1,4 @@
-function Set-ModuleAliases
-{
+function Set-ModuleAlias {
     <#
     .SYNOPSIS
         EXPIRIMENTAL: Set AliasesToExport in a module manifest
@@ -11,14 +10,14 @@ function Set-ModuleAliases
         EXPIRIMENTAL: Set AliasesToExport in a module manifest
 
     .PARAMETER Name
-        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariables
+        Name or path to module to inspect.  Defaults to ProjectPath\ProjectName via Get-BuildVariable
 
     .NOTES
         Major thanks to Joel Bennett for the code behind working with the psd1
             Source: https://github.com/PoshCode/Configuration
 
     .EXAMPLE
-        Set-ModuleAliases
+        Set-ModuleAlias
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -26,10 +25,9 @@ function Set-ModuleAliases
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdLetBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
-        [ValidateNotNullOrEmpty()]
         [Alias('Path')]
         [string]$Name,
 
@@ -39,7 +37,7 @@ function Set-ModuleAliases
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
@@ -52,11 +50,11 @@ function Set-ModuleAliases
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
-                Param ($Force, $Passthru, $Name)
-                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-                $module | Where-Object Path -notin $module.Scripts
+            Param ($Force, $Passthru, $Name)
+            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            $module | Where-Object Path -notin $module.Scripts
 
-            }).AddParameters($Params)
+        }).AddParameters($Params)
 
         #Consider moving this to a runspace or job to keep session clean
         $Module = $PowerShell.Invoke()
@@ -78,8 +76,10 @@ function Set-ModuleAliases
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
-        
+        If ($PSCmdlet.ShouldProcess("Updating Module's exported Aliases")) {
+            Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
+        }
+
         # Close down the runspace
         $PowerShell.Dispose()
     }

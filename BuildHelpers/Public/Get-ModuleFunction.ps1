@@ -1,14 +1,13 @@
-function Get-ModuleAliases
-{
+function Get-ModuleFunction {
     <#
     .SYNOPSIS
-        List aliases imported by a module
+        List functions imported by a module
 
     .FUNCTIONALITY
         CI/CD
 
     .DESCRIPTION
-        List aliases imported by a module. Note that this actually imports the module.
+        List functions imported by a module. Note that this actually imports the module.
 
     .PARAMETER Name
         Name or path to module to inspect.  Defaults to ProjectPath\ProjectName
@@ -17,7 +16,7 @@ function Get-ModuleAliases
         We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-        Get-ModuleAliases
+        Get-ModuleFunction
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -28,7 +27,6 @@ function Get-ModuleAliases
     [cmdletbinding()]
     param(
         [parameter(ValueFromPipeline = $True)]
-        [ValidateNotNullOrEmpty()]
         [Alias('Path')]
         [string]$Name
     )
@@ -36,7 +34,7 @@ function Get-ModuleAliases
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
@@ -49,12 +47,12 @@ function Get-ModuleAliases
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
         [void]$PowerShell.AddScript({
-                Param ($Force, $Passthru, $Name)
-                Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+            Param ($Force, $Passthru, $Name)
+            Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
 
-            }).AddParameters($Params)
+        }).AddParameters($Params)
 
-        ( $PowerShell.Invoke() ).ExportedAliases.Keys
+        ( $PowerShell.Invoke() ).ExportedFunctions.Keys
 
         $PowerShell.Dispose()
     }

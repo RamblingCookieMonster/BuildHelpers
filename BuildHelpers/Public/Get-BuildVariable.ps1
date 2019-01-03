@@ -1,5 +1,4 @@
-function Get-BuildVariables
-{
+function Get-BuildVariable {
     <#
     .SYNOPSIS
         Normalize build system variables
@@ -46,7 +45,7 @@ function Get-BuildVariables
         We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-        Get-BuildVariables
+        Get-BuildVariable
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -62,23 +61,20 @@ function Get-BuildVariables
     #>
     [cmdletbinding()]
     param(
-        [ValidateNotNullOrEmpty()]
         $Path = $PWD.Path,
-        
         [validatescript({
-                if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
-                {
-                    throw "Could not find command at GitPath [$_]"
-                }
-                $true
-            })]
+            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
+            {
+                throw "Could not find command at GitPath [$_]"
+            }
+            $true
+        })]
         $GitPath = 'git'
     )
 
     $Path = Get-FullPath $Path
     $Environment = Get-Item ENV:
-    if(!$PSboundParameters.ContainsKey('GitPath'))
-    {
+    if(!$PSboundParameters.ContainsKey('GitPath')) {
         $GitPath = (Get-Command $GitPath -ErrorAction SilentlyContinue)[0].Path
     }
 
@@ -90,7 +86,7 @@ function Get-BuildVariables
             GitPath = $GitPath
         }
     }
-    $tcProperties = Get-TeamCityProperties # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
+    $tcProperties = Get-TeamCityProperty # Teamcity has limited ENV: values but dumps the build configuration in a properties file.
 
     # Determine the build system:
     $BuildSystem = switch ($Environment.Name)
@@ -121,12 +117,9 @@ function Get-BuildVariables
     }
     if(-not $BuildRoot)
     {
-        if ($BuildSystem -eq 'Teamcity')
-        {
+        if ($BuildSystem -eq 'Teamcity') {
             $BuildRoot = $tcProperties['teamcity.build.checkoutDir']
-        }
-        else
-        {
+        } else {
             # Assumption: this function is defined in a file at the root of the build folder
             $BuildRoot = $Path
         }
@@ -156,61 +149,53 @@ function Get-BuildVariables
     # Find the git commit message
     $CommitMessage = switch ($Environment.Name)
     {
-        'APPVEYOR_REPO_COMMIT_MESSAGE'
-        {
+        'APPVEYOR_REPO_COMMIT_MESSAGE' {
             "$env:APPVEYOR_REPO_COMMIT_MESSAGE $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED".TrimEnd()
             break
         }
-        'CI_COMMIT_SHA'
-        {
+        'CI_COMMIT_SHA' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Gitlab 9.0+ - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'CI_BUILD_REF'
-        {
+        'CI_BUILD_REF' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Gitlab 8.x - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'GIT_COMMIT'
-        {
+        'GIT_COMMIT' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'BUILD_SOURCEVERSION'
-        {
+        'BUILD_SOURCEVERSION' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
         }
-        'BUILD_VCS_NUMBER'
-        {
+        'BUILD_VCS_NUMBER' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Teamcity https://confluence.jetbrains.com/display/TCD10/Predefined+Build+Parameters
         }
-        'BAMBOO_REPOSITORY_REVISION_NUMBER'
-        {
+        'BAMBOO_REPOSITORY_REVISION_NUMBER' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Bamboo https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
         }
-        'TRAVIS_COMMIT_MESSAGE'
-        {
+        'TRAVIS_COMMIT_MESSAGE' {
             "$env:TRAVIS_COMMIT_MESSAGE"
             break
         }
