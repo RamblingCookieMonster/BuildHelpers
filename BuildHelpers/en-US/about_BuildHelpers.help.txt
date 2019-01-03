@@ -13,7 +13,7 @@ LONG DESCRIPTION
 
 DETAILED DESCRIPTION
     There are a few functions:
-        Get-BuildVariables:   This looks at your current environment variables, and returns details on what build system you're using, the git branch, commit message, and more.
+        Get-BuildVariable:   This looks at your current environment variables, and returns details on what build system you're using, the git branch, commit message, and more.
         Get-ProjectName:      This looks at the current path, and tries to guess your project / module name based on common conventions.
         Set-BuildEnvironment: This calls other BuildHelper functions, and sets environment variables that you can use in your scripts.
         Set-BuildVariable:    This calls other BuildHelper functions, and sets PowerShell variables in the calling or specified scope.

@@ -1,4 +1,4 @@
-﻿@{
+@{
     # Some defaults for all dependencies
     PSDependOptions = @{
         Target    = '$ENV:USERPROFILE\Documents\WindowsPowerShell\Modules'
@@ -19,7 +19,7 @@
     }
     'Pester'        = @{
         DependencyType = 'PSGalleryNuget'
-        Version        = '3.4.6'
+        Version        = '4.3.1'
     }
     'Configuration' = @{
         DependencyType = 'PSGalleryModule'

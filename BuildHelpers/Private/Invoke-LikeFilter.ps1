@@ -8,11 +8,11 @@ function Invoke-LikeFilter {
         [string[]]$FilterArray, # Array of strings to filter on with a -like operator
         [switch]$Not # return items that are not -like...
     )
-    
+
     if($FilterArray.count -gt 0)
     {
         Write-Verbose "Running FilterArray [$FilterArray] against [$($Collection.count)] items"
-        $Collection | Where {
+        $Collection | Where-Object {
             $Status = $False
             foreach($item in $FilterArray)
             {
@@ -25,8 +25,8 @@ function Invoke-LikeFilter {
                 }
                 elseif($NestedPropertyName)
                 {
-                    # Code injection, beware...
-                    $Value = Invoke-Expression "`$_.$($NestedPropertyName -join '.')"
+                    $dump = $_
+                    $Value = $NestedPropertyName | Foreach-Object -process {$dump = $dump.$_} -end {$dump}
                     if($Value -like $item)
                     {
                         $Status = $True

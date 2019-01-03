@@ -1,4 +1,4 @@
-function Get-ModuleAliases {
+function Get-ModuleAlias {
     <#
     .SYNOPSIS
         List aliases imported by a module
@@ -16,7 +16,7 @@ function Get-ModuleAliases {
         We assume you are in the project root, for several of the fallback options
 
     .EXAMPLE
-        Get-ModuleAliases
+        Get-ModuleAlias
 
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
@@ -34,7 +34,7 @@ function Get-ModuleAliases {
     {
         if(-not $Name)
         {
-            $BuildDetails = Get-BuildVariables
+            $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 

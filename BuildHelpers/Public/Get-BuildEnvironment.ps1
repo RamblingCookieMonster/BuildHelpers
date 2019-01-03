@@ -10,10 +10,10 @@ function Get-BuildEnvironment {
         Get normalized build system and project details
 
         Returns the following details:
-            ProjectPath      via Get-BuildVariables
-            BranchName       via Get-BuildVariables
-            CommitMessage    via Get-BuildVariables
-            BuildNumber      via Get-BuildVariables
+            ProjectPath      via Get-BuildVariable
+            BranchName       via Get-BuildVariable
+            CommitMessage    via Get-BuildVariable
+            BuildNumber      via Get-BuildVariable
             ProjectName      via Get-ProjectName
             PSModuleManifest via Get-PSModuleManifest
             ModulePath       via Split-Path on PSModuleManifest
@@ -51,7 +51,7 @@ function Get-BuildEnvironment {
         https://github.com/RamblingCookieMonster/BuildHelpers
 
     .LINK
-        Get-BuildVariables
+        Get-BuildVariable
 
     .LINK
         Set-BuildEnvironment
@@ -86,7 +86,7 @@ function Get-BuildEnvironment {
     {
         $GBVParams.add('GitPath', $GitPath)
     }
-    ${Build.Vars} = Get-BuildVariables @GBVParams
+    ${Build.Vars} = Get-BuildVariable @GBVParams
     ${Build.ProjectName} = Get-ProjectName -Path $Path
     ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
     if( ${Build.ManifestPath} ) {
