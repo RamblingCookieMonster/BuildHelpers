@@ -10,6 +10,7 @@ $ModuleName = $ENV:BHProjectName
         $Verbose.add("Verbose",$True)
     }
 
+Remove-Module $ModuleName
 Import-Module $PSScriptRoot\..\$ModuleName -Force
 
 Describe "$ModuleName PS$PSVersion" {
@@ -427,6 +428,157 @@ Describe 'Set-ShieldsIoBadge' {
 
         It 'Should update the dummy readme.md with code coverage' {
             Get-Content TestDrive:\readme.md | Should Be '![coverage](https://img.shields.io/badge/coverage-75%25-yellow.svg)'
+        }
+    }
+}
+
+Describe 'Publish-GithubRelease' {
+    Mock Get-ProjectName -ModuleName BuildHelpers { "MockedBuildHelpers" }
+    Mock Invoke-RestMethod -ModuleName BuildHelpers {
+        [PSCustomObject]@{upload_url = "https://upload{?name,label}"}
+    }
+
+    Context 'Behavior' {
+        It 'Uses $env:BHProjectName as default repository name' {
+            Publish-GithubRelease -AccessToken "a" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Get-ProjectName"
+                ModuleName = "BuildHelpers"
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Uses the provived RepositoryName' {
+            Publish-GithubRelease -AccessToken "a" -Owner "MyUser" -TagName "a" -RepositoryName "MyGithubRepository"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://api.github.com/repos/MyUser/MyGithubRepository/releases*"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Encodes the PAT to base64' {
+            Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Headers.Authorization -eq 'Basic YWJjOngtb2F1dGgtYmFzaWM='
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Does not upload files when none are provided' {
+            Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://upload*"
+                }
+                Exactly = $true
+                Times = 0
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Uploads artifacts' {
+            "" > TestDrive:\testfile1.txt
+            "" > TestDrive:\testfile2.txt
+
+            Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a" -Artifact "TestDrive:\testfile1.txt", "TestDrive:\testfile2.txt"
+            "TestDrive:\testfile1.txt", "TestDrive:\testfile2.txt" | Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+            Get-Childitem "TestDrive:\*.txt" | Publish-GithubRelease -AccessToken "abc" -Owner "a" -TagName "a"
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://upload*testfile1.txt"
+                }
+                Exactly = $true
+                Times = 3
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Uri -like "https://upload*testfile2.txt"
+                }
+                Exactly = $true
+                Times = 3
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+    }
+
+    Context 'Patameters' {
+        It 'Constructs the body of the request correctly' {
+            $release = @{
+                AccessToken = "00000000000000000000000"
+                Owner = "a"
+                TagName = "v1.0"
+                Name = "Version 1.0"
+                ReleaseText = "First version of my cool thing"
+                Draft = $true
+                PreRelease = $false
+            }
+            Publish-GithubRelease @release
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Body -match "`"tag_name`"\s*:\s*`"v1.0`"" -and
+                    $Body -match "`"name`"\s*:\s*`"Version 1.0`"" -and
+                    $Body -match "`"body`"\s*:\s*`"First version of my cool thing`"" -and
+                    $Body -match "`"draft`"\s*:\s*true"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
+        }
+
+        It 'Does not add optional parameters if not provided' {
+            Publish-GithubRelease -AccessToken "a" -Owner "a" -TagName "v0.1" -Name "Beta Version 0.1" -PreRelease
+
+            $assertMockCalledSplat = @{
+                CommandName = "Invoke-RestMethod"
+                ModuleName = "BuildHelpers"
+                ParameterFilter = {
+                    $Body -notlike "*target_commitish*" -and
+                    $Body -notlike "*body*" -and
+                    $Body -notlike "*draft*"
+                }
+                Exactly = $true
+                Times = 1
+                Scope = "It"
+            }
+            Assert-MockCalled @assertMockCalledSplat
         }
     }
 }
