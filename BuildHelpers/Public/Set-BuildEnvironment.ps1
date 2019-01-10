@@ -120,8 +120,7 @@ function Set-BuildEnvironment {
         if($null -ne $BuildHelpersVariables[$VarName]) {
             $prefixedVar = "$VariableNamePrefix$VarName"
 
-            Write-Verbose "storing [$prefixedVar] with value '$($BuildHelpersVariables[$VarName])'"
-            Write-Verbose "$prefixedVar] is of type '$($BuildHelpersVariables[$VarName])'"
+            Write-Verbose "storing [$prefixedVar] with value '$($BuildHelpersVariables[$VarName])'."
             $Output = New-Item -Path Env:\ -Name $prefixedVar -Value $BuildHelpersVariables[$VarName] -Force:$Force
             if ("VSTS" -eq $BuildHelpersVariables["BuildSystem"]) {
                 Set-VSTSVariable -Name $prefixedVar -Value $BuildHelpersVariables[$VarName]
