@@ -38,6 +38,7 @@ function Set-VSTSVariable {
         $_secret = ""
         if ($Secret) { $_secret = ";issecret=true" }
 
+        Write-Verbose "storing [$Name] with VSTS task.setvariable command"
         Write-Host "##vso[task.setvariable variable=$Name$_secret]$Value"
     }
 }
