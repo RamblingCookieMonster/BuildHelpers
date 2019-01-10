@@ -207,6 +207,7 @@ function Get-BuildVariable {
             $CommitMessage = Invoke-Git @IGParams -Arguments "log --format=%B -n 1"
         }
     }
+    if($CommitMessage) {$CommitMessage = $CommitMessage -join "`n"}
 
     # Build number
     $BuildNumber = switch ($Environment.Name)
