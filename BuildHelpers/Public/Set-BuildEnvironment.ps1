@@ -119,7 +119,13 @@ function Set-BuildEnvironment {
     $BuildHelpersVariables = Get-BuildEnvironment @GBEParams
     foreach ($VarName in $BuildHelpersVariables.Keys) {
         if($null -ne $BuildHelpersVariables[$VarName]) {
-            $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
+            $prefixedVar = "$VariableNamePrefix$VarName"
+
+            Write-Verbose "storing [$prefixedVar] with value '$($BuildHelpersVariables[$VarName])'."
+            $Output = New-Item -Path Env:\ -Name $prefixedVar -Value $BuildHelpersVariables[$VarName] -Force:$Force
+            if ("VSTS" -eq $BuildHelpersVariables["BuildSystem"]) {
+                Set-VSTSVariable -Name $prefixedVar -Value $BuildHelpersVariables[$VarName]
+            }
             if($Passthru)
             {
                 $Output
@@ -129,7 +135,11 @@ function Set-BuildEnvironment {
     if($VariableNamePrefix -eq 'BH' -and $BuildHelpersVariables.ModulePath)
     {
         # Handle existing scripts that reference BHPSModulePath
+        Write-Verbose "storing [BHPSModulePath] with value '$($BuildHelpersVariables.ModulePath)'"
         $Output = New-Item -Path Env:\ -Name BHPSModulePath -Value $BuildHelpersVariables.ModulePath -Force:$Force
+        if ("VSTS" -eq $BuildHelpersVariables["BuildSystem"]) {
+            Set-VSTSVariable -Name BHPSModulePath -Value $BuildHelpersVariables.ModulePath
+        }
         if($Passthru)
         {
             $Output

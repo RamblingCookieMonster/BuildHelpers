@@ -34,66 +34,28 @@ function Step-ModuleVersion
     [CmdletBinding()]
     param(
         # Specifies a path a valid Module Manifest file.
-        [Parameter(Position=0,
-            ValueFromPipeline=$true,
-            ValueFromPipelineByPropertyName=$true,
-            HelpMessage="Path to one or more locations.")]
+        [Parameter(ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   HelpMessage="Path to one or more locations.")]
         [Alias("PSPath")]
         [ValidateScript({ Test-Path $_ -PathType Leaf })]
         [string[]]
-        $Path,
+        $Path = (Get-Item $PWD\*.psd1)[0],
 
         # Version section to step
-        [Parameter(Position=1)]
+        [Parameter()]
         [ValidateSet("Major", "Minor", "Build","Patch")]
         [Alias("Type")]
         [string]
         $By = "Patch"
     )
 
-    Begin 
-    {
-        if (-not $PSBoundParameters.ContainsKey("Path"))
-        {
-            $Path = (Get-Item $PWD\*.psd1)[0]
-        }
-    }
-
     Process
     {
         foreach ($file in $Path)
         {
-            $file = Get-FullPath $file
-
-            $manifest = Import-PowerShellDataFile -Path $file 
-            $newVersion = Step-Version $manifest.ModuleVersion $By
-            $manifest.Remove("ModuleVersion")
-
-            $manifest.FunctionsToExport = $manifest.FunctionsToExport | ForEach-Object {$_}
-            $manifest.NestedModules = $manifest.NestedModules | ForEach-Object {$_}
-            $manifest.RequiredModules = $manifest.RequiredModules | ForEach-Object {$_}
-            $manifest.ModuleList = $manifest.ModuleList | ForEach-Object {$_}
-
-            if ($manifest.ContainsKey("PrivateData") -and $manifest.PrivateData.ContainsKey("PSData"))
-            {
-                foreach ($node in $manifest.PrivateData["PSData"].GetEnumerator())
-                {
-                    $key = $node.Key
-                    if ($node.Value.GetType().Name -eq "Object[]")
-                    {
-                        $value = $node.Value | ForEach-Object {$_}
-                    }
-                    else
-                    {
-                        $value = $node.Value
-                    }
-
-                    $manifest[$key] = $value
-                }
-                $manifest.Remove("PrivateData")
-            }
-
-            New-ModuleManifest -Path $file -ModuleVersion $newVersion @manifest
+            $version = [Version](Get-Metadata -Path $file)
+            Update-MetaData -Path $file -PropertyName ModuleVersion -Value (Step-Version $version $By)
         }
     }
 }

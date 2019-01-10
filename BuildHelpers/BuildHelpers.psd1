@@ -67,7 +67,17 @@ CmdletsToExport = '*'
 VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport = @('Set-BuildVariable', 'Get-NextPSGalleryVersion')
+AliasesToExport = @(
+    'Set-BuildVariable'
+    'Get-NextPSGalleryVersion'
+    'Get-BuildVariables'
+    'Get-ModuleAliases'
+    'Get-ModuleFunctions'
+    'Set-ModuleAliases'
+    'Set-ModuleFormats'
+    'Set-ModuleFunctions'
+    'Set-ModuleTypes'
+)
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()

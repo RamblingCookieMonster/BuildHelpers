@@ -38,7 +38,7 @@ function Step-Version {
         [Parameter(Mandatory=$true,
                    ValueFromPipeline=$true,
                    Position=0)]
-        [String]
+        [version]
         $Version,
 
         # Version section to step
@@ -51,11 +51,9 @@ function Step-Version {
 
     Process
     {
-        $currentVersion = [version]$Version
-
-        $major = $currentVersion.Major
-        $minor = $currentVersion.Minor
-        $build = $currentVersion.Build
+        $major = $Version.Major
+        $minor = $Version.Minor
+        $build = $Version.Build
 
         switch ($By) {
             "Major" { $major++
@@ -69,9 +67,7 @@ function Step-Version {
                     break }
         }
 
-        $newVersion = New-Object Version -ArgumentList $major, $minor, $build
-
-        Write-Output -InputObject $newVersion.ToString()
+        Write-Output (New-Object Version -ArgumentList $major, $minor, $build).ToString()
     }
 }
 

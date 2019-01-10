@@ -94,7 +94,7 @@ function Get-BuildVariable {
         'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
         'GITLAB_CI'             { 'GitLab CI' ; break }
         'JENKINS_URL'           { 'Jenkins'; break }
-        'BUILD_REPOSITORY_URI'  { 'VSTS'; break }
+        'BUILD_DEFINITIONNAME'  { 'VSTS'; break }
         'TEAMCITY_VERSION'      { 'Teamcity'; break }
         'BAMBOO_BUILDKEY'       { 'Bamboo'; break }
         'GOCD_SERVER_URL'       { 'GoCD'; break }
@@ -111,7 +111,7 @@ function Get-BuildVariable {
         'APPVEYOR_BUILD_FOLDER'          { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
         'CI_PROJECT_DIR'                 { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
         'WORKSPACE'                      { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
-        'BUILD_REPOSITORY_LOCALPATH'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
+        'SYSTEM_DEFAULTWORKINGDIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
         'BAMBOO_BUILD_WORKING_DIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'TRAVIS_BUILD_DIR'               { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
     }
@@ -174,7 +174,7 @@ function Get-BuildVariable {
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'BUILD_SOURCEVERSION' {
+        'SYSTEM_TEAMPROJECT' {
             if($WeCanGit)
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
@@ -207,6 +207,7 @@ function Get-BuildVariable {
             $CommitMessage = Invoke-Git @IGParams -Arguments "log --format=%B -n 1"
         }
     }
+    if($CommitMessage) {$CommitMessage = $CommitMessage -join "`n"}
 
     # Build number
     $BuildNumber = switch ($Environment.Name)
