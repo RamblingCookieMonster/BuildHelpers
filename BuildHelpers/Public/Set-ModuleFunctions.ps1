@@ -57,9 +57,9 @@ function Set-ModuleFunctions {
 
         #Consider moving this to a runspace or job to keep session clean
         $Module = $PowerShell.Invoke()
-        if(-not $Module)
+        if($PowerShell.HadErrors)
         {
-            Throw "Could not find module '$Name'"
+            $PowerShell.Streams.Error | Write-Error -ErrorAction Stop
         }
         if(-not $FunctionsToExport)
         {
