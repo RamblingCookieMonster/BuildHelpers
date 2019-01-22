@@ -84,7 +84,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-         Tags = @('Continuous', 'Delivery', 'Deployment', 'Integration', 'DevOps', 'Jenkins', 'GitLab', 'CI', 'VSTS', 'AppVeyor')
+         Tags = @('Continuous', 'Delivery', 'Deployment', 'Integration', 'DevOps', 'Jenkins', 'GitLab', 'CI', 'VSTS', 'AppVeyor', 'GitHub Action')
 
         # A URL to the license for this module.
          LicenseUri = 'https://github.com/RamblingCookieMonster/BuildHelpers/blob/master/LICENSE'
