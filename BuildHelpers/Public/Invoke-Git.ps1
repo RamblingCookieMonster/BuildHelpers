@@ -146,7 +146,10 @@
             }
             if($stderr)
             {
-                Write-Error $stderr.trim()
+                foreach ($errLine in $stderr) 
+                {
+                    Write-Error $errLine.trim()
+                }
             }
         }
     }
