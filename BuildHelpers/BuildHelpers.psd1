@@ -106,7 +106,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ""
+        ReleaseNotes = "Add support for GitHub Actions, and fix bug in Invoke-Git error handling"
 
     } # End of PSData hashtable
 
