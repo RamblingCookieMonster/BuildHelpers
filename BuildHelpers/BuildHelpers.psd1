@@ -94,7 +94,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-         Tags = @('Continuous', 'Delivery', 'Deployment', 'Integration', 'DevOps', 'Jenkins', 'GitLab', 'CI', 'VSTS', 'AppVeyor', 'GitHub Action')
+         Tags = @('Continuous', 'Delivery', 'Deployment', 'Integration', 'DevOps', 'Jenkins', 'GitLab', 'CI', 'VSTS', 'AppVeyor', 'GitHub', 'Action', 'GitHub-Action')
 
         # A URL to the license for this module.
          LicenseUri = 'https://github.com/RamblingCookieMonster/BuildHelpers/blob/master/LICENSE'
@@ -106,7 +106,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = "This release will load an external copy of Joel Bennett's Configuration module if we find one on your system, and it is newer than the embedded Configuration module"
+        # ReleaseNotes = ""
 
     } # End of PSData hashtable
 
