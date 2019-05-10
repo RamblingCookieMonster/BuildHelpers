@@ -1,10 +1,10 @@
 function Set-AzurePipelinesVariable {
     <#
     .SYNOPSIS
-        Set a envrionment variable in VSTS that will persist between tasks
+        Set a envrionment variable in VSTS/Azure Pipelines that will persist between tasks
 
     .DESCRIPTION
-        This command uses the VSTS command task.setvariable to create an
+        This command uses the VSTS/Azure Pipelines command task.setvariable to create an
         envrionment variable which will be available in all following tasks
         within the same stage.
 
@@ -19,7 +19,7 @@ function Set-AzurePipelinesVariable {
     #>
     [CmdletBinding( SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', 'VSTS does not listen to Out-Host')]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingWriteHost', 'Azure Pipelines does not listen to Out-Host')]
     param (
         # Name of the variable
         [Parameter(Mandatory)]
@@ -38,7 +38,7 @@ function Set-AzurePipelinesVariable {
         $_secret = ""
         if ($Secret) { $_secret = ";issecret=true" }
 
-        Write-Verbose "storing [$Name] with VSTS task.setvariable command"
+        Write-Verbose "storing [$Name] with Azure Pipelines task.setvariable command"
         Write-Host "##vso[task.setvariable variable=$Name$_secret]$Value"
     }
 }

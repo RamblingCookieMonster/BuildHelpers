@@ -122,8 +122,8 @@ function Set-BuildEnvironment {
 
             Write-Verbose "storing [$prefixedVar] with value '$($BuildHelpersVariables[$VarName])'."
             $Output = New-Item -Path Env:\ -Name $prefixedVar -Value $BuildHelpersVariables[$VarName] -Force:$Force
-            if ("VSTS" -eq $BuildHelpersVariables["BuildSystem"]) {
-                Set-VSTSVariable -Name $prefixedVar -Value $BuildHelpersVariables[$VarName]
+            if ("Azure Pipelines" -eq $BuildHelpersVariables["BuildSystem"]) {
+                Set-AzurePipelinesVariable -Name $prefixedVar -Value $BuildHelpersVariables[$VarName]
             }
             if($Passthru)
             {
@@ -136,8 +136,8 @@ function Set-BuildEnvironment {
         # Handle existing scripts that reference BHPSModulePath
         Write-Verbose "storing [BHPSModulePath] with value '$($BuildHelpersVariables.ModulePath)'"
         $Output = New-Item -Path Env:\ -Name BHPSModulePath -Value $BuildHelpersVariables.ModulePath -Force:$Force
-        if ("VSTS" -eq $BuildHelpersVariables["BuildSystem"]) {
-            Set-VSTSVariable -Name BHPSModulePath -Value $BuildHelpersVariables.ModulePath
+        if ("Azure Pipelines" -eq $BuildHelpersVariables["BuildSystem"]) {
+            Set-AzurePipelinesVariable -Name BHPSModulePath -Value $BuildHelpersVariables.ModulePath
         }
         if($Passthru)
         {

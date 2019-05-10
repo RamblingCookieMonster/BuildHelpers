@@ -113,7 +113,7 @@ function Get-BuildVariable {
         'APPVEYOR_BUILD_FOLDER'          { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
         'CI_PROJECT_DIR'                 { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
         'WORKSPACE'                      { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
-        'SYSTEM_DEFAULTWORKINGDIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
+        'SYSTEM_DEFAULTWORKINGDIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines (Visual studio team services)
         'BAMBOO_BUILD_WORKING_DIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'TRAVIS_BUILD_DIR'               { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
         'GITHUB_WORKSPACE'               { (Get-Item -Path "ENV:$_").Value; break } # GitHub Action
@@ -135,7 +135,7 @@ function Get-BuildVariable {
         'CI_COMMIT_REF_NAME'            { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+
         'CI_BUILD_REF_NAME'             { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 8.x
         'GIT_BRANCH'                    { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
-        'BUILD_SOURCEBRANCHNAME'        { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'BUILD_SOURCEBRANCHNAME'        { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines
         'BAMBOO_REPOSITORY_GIT_BRANCH'  { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'TRAVIS_BRANCH'                 { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
         'GITHUB_REF'                    { (Get-Item -Path "ENV:$_").Value.Replace('refs/heads/', ''); break } # GitHub Action
@@ -183,7 +183,7 @@ function Get-BuildVariable {
             {
                 $env:BUILD_SOURCEVERSIONMESSAGE
                 break
-            } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
+            } # Azure Pipelines (https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
         }
         'BUILD_VCS_NUMBER' {
             if($WeCanGit)
@@ -228,7 +228,7 @@ function Get-BuildVariable {
         'CI_JOB_ID'             { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+ - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'CI_BUILD_ID'           { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 8.x - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
-        'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines
         'BAMBOO_BUILDNUMBER'    { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'GOCD_PIPELINE_COUNTER' { (Get-Item -Path "ENV:$_").Value; break } # GoCD
         'TRAVIS_BUILD_NUMBER'   { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
