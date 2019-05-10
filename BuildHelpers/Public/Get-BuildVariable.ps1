@@ -179,11 +179,9 @@ function Get-BuildVariable {
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
         'BUILD_SOURCEVERSIONMESSAGE' {
-            if($WeCanGit)
-            {
-                ($env:BUILD_SOURCEVERSIONMESSAGE).split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
-                break
-            } # Azure Pipelines (https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
+            ($env:BUILD_SOURCEVERSIONMESSAGE).split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
+            break
+            # Azure Pipelines (https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
         }
         'BUILD_VCS_NUMBER' {
             if($WeCanGit)
