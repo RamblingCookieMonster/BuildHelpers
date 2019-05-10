@@ -178,10 +178,17 @@ function Get-BuildVariable {
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'BUILD_SOURCEVERSIONMESSAGE' {
+        'BUILD_SOURCEVERSIONMESSAGE' { #Azure Pipelines, present in classic build pipelines, and all YAML pipelines, but not classic release pipelines
             ($env:BUILD_SOURCEVERSIONMESSAGE).split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
             break
-            # Azure Pipelines (https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
+            # Azure Pipelines Classic Build & YAML(https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
+        }
+        'SYSTEM_DEFAULTWORKINGDIRECTORY' { #Azure Pipelines, this will be triggered in the case of a classic release pipeline
+            if($WeCanGit)
+            {
+                (Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )").split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
+                break
+            } # Azure Pipelines Classic Release (https://docs.microsoft.com/en-us/azure/devops/pipelines/release/variables)
         }
         'BUILD_VCS_NUMBER' {
             if($WeCanGit)
