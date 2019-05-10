@@ -181,7 +181,7 @@ function Get-BuildVariable {
         'BUILD_SOURCEVERSIONMESSAGE' {
             if($WeCanGit)
             {
-                $env:BUILD_SOURCEVERSIONMESSAGE
+                ($env:BUILD_SOURCEVERSIONMESSAGE).split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
                 break
             } # Azure Pipelines (https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
         }
