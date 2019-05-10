@@ -95,7 +95,7 @@ function Get-BuildVariable {
         'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
         'GITLAB_CI'             { 'GitLab CI' ; break }
         'JENKINS_URL'           { 'Jenkins'; break }
-        'BUILD_DEFINITIONNAME'  { 'VSTS'; break }
+        'BUILD_DEFINITIONNAME'  { 'Azure Pipelines'; break }
         'TEAMCITY_VERSION'      { 'Teamcity'; break }
         'BAMBOO_BUILDKEY'       { 'Bamboo'; break }
         'GOCD_SERVER_URL'       { 'GoCD'; break }
@@ -178,10 +178,10 @@ function Get-BuildVariable {
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'SYSTEM_TEAMPROJECT' {
+        'BUILD_SOURCEVERSIONMESSAGE' {
             if($WeCanGit)
             {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                $env:BUILD_SOURCEVERSIONMESSAGE
                 break
             } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
         }
