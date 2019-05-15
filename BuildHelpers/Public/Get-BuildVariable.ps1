@@ -18,7 +18,7 @@ function Get-BuildVariable {
                 GitLab CI
                 Jenkins
                 Teamcity
-                VTFS
+                Azure Pipelines
                 Bamboo
                 GoCD
                 Travis CI
