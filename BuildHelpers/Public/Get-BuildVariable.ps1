@@ -22,7 +22,7 @@ function Get-BuildVariable {
                 Bamboo
                 GoCD
                 Travis CI
-                GitHub Action
+                GitHub Actions
 
             For Teamcity the VCS Checkout Mode needs to be to checkout files on agent.
             Since TeamCity 10.0, this is the default setting for the newly created build configurations.
@@ -100,7 +100,7 @@ function Get-BuildVariable {
         'BAMBOO_BUILDKEY'       { 'Bamboo'; break }
         'GOCD_SERVER_URL'       { 'GoCD'; break }
         'TRAVIS'                { 'Travis CI'; break }
-        'GITHUB_WORKFLOW'       { 'GitHub Action'; break }
+        'GITHUB_WORKFLOW'       { 'GitHub Actions'; break }
     }
     if(-not $BuildSystem)
     {
@@ -116,7 +116,7 @@ function Get-BuildVariable {
         'SYSTEM_DEFAULTWORKINGDIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines (Visual studio team services)
         'BAMBOO_BUILD_WORKING_DIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'TRAVIS_BUILD_DIR'               { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
-        'GITHUB_WORKSPACE'               { (Get-Item -Path "ENV:$_").Value; break } # GitHub Action
+        'GITHUB_WORKSPACE'               { (Get-Item -Path "ENV:$_").Value; break } # GitHub Actions
     }
     if(-not $BuildRoot)
     {
@@ -138,7 +138,7 @@ function Get-BuildVariable {
         'BUILD_SOURCEBRANCHNAME'        { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines
         'BAMBOO_REPOSITORY_GIT_BRANCH'  { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'TRAVIS_BRANCH'                 { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
-        'GITHUB_REF'                    { (Get-Item -Path "ENV:$_").Value.Replace('refs/heads/', ''); break } # GitHub Action
+        'GITHUB_REF'                    { (Get-Item -Path "ENV:$_").Value.Replace('refs/heads/', ''); break } # GitHub Actions
     }
     if(-not $BuildBranch)
     {
@@ -213,7 +213,7 @@ function Get-BuildVariable {
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
-            } # GitHub Action https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#environment-variables
+            } # GitHub Actions https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#environment-variables
         }
 
     }
