@@ -18,11 +18,11 @@ function Get-BuildVariable {
                 GitLab CI
                 Jenkins
                 Teamcity
-                VTFS
+                Azure Pipelines
                 Bamboo
                 GoCD
                 Travis CI
-                GitHub Action
+                GitHub Actions
 
             For Teamcity the VCS Checkout Mode needs to be to checkout files on agent.
             Since TeamCity 10.0, this is the default setting for the newly created build configurations.
@@ -95,12 +95,12 @@ function Get-BuildVariable {
         'APPVEYOR_BUILD_FOLDER' { 'AppVeyor'; break }
         'GITLAB_CI'             { 'GitLab CI' ; break }
         'JENKINS_URL'           { 'Jenkins'; break }
-        'BUILD_DEFINITIONNAME'  { 'VSTS'; break }
+        'BUILD_DEFINITIONNAME'  { 'Azure Pipelines'; break }
         'TEAMCITY_VERSION'      { 'Teamcity'; break }
         'BAMBOO_BUILDKEY'       { 'Bamboo'; break }
         'GOCD_SERVER_URL'       { 'GoCD'; break }
         'TRAVIS'                { 'Travis CI'; break }
-        'GITHUB_WORKFLOW'       { 'GitHub Action'; break }
+        'GITHUB_WORKFLOW'       { 'GitHub Actions'; break }
     }
     if(-not $BuildSystem)
     {
@@ -113,10 +113,10 @@ function Get-BuildVariable {
         'APPVEYOR_BUILD_FOLDER'          { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
         'CI_PROJECT_DIR'                 { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
         'WORKSPACE'                      { (Get-Item -Path "ENV:$_").Value; break } # Jenkins Jenkins... seems generic.
-        'SYSTEM_DEFAULTWORKINGDIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # VSTS (Visual studio team services)
+        'SYSTEM_DEFAULTWORKINGDIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines (Visual studio team services)
         'BAMBOO_BUILD_WORKING_DIRECTORY' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'TRAVIS_BUILD_DIR'               { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
-        'GITHUB_WORKSPACE'               { (Get-Item -Path "ENV:$_").Value; break } # GitHub Action
+        'GITHUB_WORKSPACE'               { (Get-Item -Path "ENV:$_").Value; break } # GitHub Actions
     }
     if(-not $BuildRoot)
     {
@@ -135,10 +135,10 @@ function Get-BuildVariable {
         'CI_COMMIT_REF_NAME'            { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+
         'CI_BUILD_REF_NAME'             { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 8.x
         'GIT_BRANCH'                    { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
-        'BUILD_SOURCEBRANCHNAME'        { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'BUILD_SOURCEBRANCHNAME'        { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines
         'BAMBOO_REPOSITORY_GIT_BRANCH'  { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'TRAVIS_BRANCH'                 { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
-        'GITHUB_REF'                    { (Get-Item -Path "ENV:$_").Value.Replace('refs/heads/', ''); break } # GitHub Action
+        'GITHUB_REF'                    { (Get-Item -Path "ENV:$_").Value.Replace('refs/heads/', ''); break } # GitHub Actions
     }
     if(-not $BuildBranch)
     {
@@ -178,12 +178,17 @@ function Get-BuildVariable {
                 break
             } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
         }
-        'SYSTEM_TEAMPROJECT' {
+        'BUILD_SOURCEVERSIONMESSAGE' { #Azure Pipelines, present in classic build pipelines, and all YAML pipelines, but not classic release pipelines
+            ($env:BUILD_SOURCEVERSIONMESSAGE).split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
+            break
+            # Azure Pipelines Classic Build & YAML(https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
+        }
+        'SYSTEM_DEFAULTWORKINGDIRECTORY' { #Azure Pipelines, this will be triggered in the case of a classic release pipeline
             if($WeCanGit)
             {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                (Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )").split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
                 break
-            } # VSTS (https://www.visualstudio.com/en-us/docs/build/define/variables#)
+            } # Azure Pipelines Classic Release (https://docs.microsoft.com/en-us/azure/devops/pipelines/release/variables)
         }
         'BUILD_VCS_NUMBER' {
             if($WeCanGit)
@@ -208,7 +213,7 @@ function Get-BuildVariable {
             {
                 Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
-            } # GitHub Action https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#environment-variables
+            } # GitHub Actions https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#environment-variables
         }
 
     }
@@ -228,7 +233,7 @@ function Get-BuildVariable {
         'CI_JOB_ID'             { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+ - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'CI_BUILD_ID'           { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 8.x - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
-        'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # VSTS
+        'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines
         'BAMBOO_BUILDNUMBER'    { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
         'GOCD_PIPELINE_COUNTER' { (Get-Item -Path "ENV:$_").Value; break } # GoCD
         'TRAVIS_BUILD_NUMBER'   { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
