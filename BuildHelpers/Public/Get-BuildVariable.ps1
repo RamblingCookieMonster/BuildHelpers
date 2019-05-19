@@ -226,6 +226,26 @@ function Get-BuildVariable {
     }
     if($CommitMessage) {$CommitMessage = $CommitMessage -join "`n"}
 
+    # find the commit hash
+    $CommitHash = switch ($Environment.Name)
+    {
+        'APPVEYOR_REPO_COMMIT'           { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
+        'CI_COMMIT_SHA'                  { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI
+        'GIT_COMMIT'                     { (Get-Item -Path "ENV:$_").Value; break } # Jenkins
+        'BUILD_VCS_NUMBER'               { (Get-Item -Path "ENV:$_").Value; break } # Teamcity
+        'BUILD_SOURCEVERSION'            { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines
+        'BAMBOO_PLANREPOSITORY_REVISION' { (Get-Item -Path "ENV:$_").Value; break } # Bamboo
+        'GO_REVISION'                    { (Get-Item -Path "ENV:$_").Value; break } # GoCD
+        'TRAVIS_COMMIT'                  { (Get-Item -Path "ENV:$_").Value; break } # Travis CI
+        'GITHUB_SHA'                     { (Get-Item -Path "ENV:$_").Value; break } # Github Actions
+    }
+    if(-not $CommitHash)
+    {
+        if($WeCanGit)
+        {
+            $CommitMessage = Invoke-Git @IGParams -Arguments "log --format=%H -n 1"
+        }        
+    }
     # Build number
     $BuildNumber = switch ($Environment.Name)
     {
@@ -248,6 +268,7 @@ function Get-BuildVariable {
         ProjectPath = $BuildRoot
         BranchName = $BuildBranch
         CommitMessage = $CommitMessage
+        CommitHash = $CommitHash
         BuildNumber = $BuildNumber
     }
 }
