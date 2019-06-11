@@ -8,6 +8,12 @@ function Get-GitChangedFile {
 
     .DESCRIPTION
         Get a list of files changed in a git commit
+        Uses git diff to find changed files
+        By default it will get you the files changed in the current commit,
+        or a specific commit can be specified.
+        You can also use LeftRevision, RightRevision, and RangeNotation parameters
+        to specify your own range, useful when determing what has changed in a merge
+        or what would change in a hypothetical merge
 
     .PARAMETER Path
         Path to git repo. Defaults to the current working path
@@ -26,6 +32,18 @@ function Get-GitChangedFile {
     .PARAMETER Resolve
         If specified, run Resolve-Path on the determined git path and file in question
 
+    .PARAMETER LeftRevision
+        If specified, use this value as part of a range comparision along with RangeNotation and optionally RightRevision
+
+    .PARAMETER RangeNotation
+        If specified, use this value as part of a range comparision along with LeftRevision and/or RightRevision
+        If not specified, but either or both of LeftRevision and RightRevision are specified, it will default to triple dot notation.
+        Defaults to triple dot (...) notation, which will only show changes in one "direction"
+        Double dot (..) notation can also be specified, which shows all changes between the two revisions
+
+    .PARAMETER RightRevision
+        If specified, use this value as part of a range comparision along with RangeNotation and optionally LeftRevision
+
     .EXAMPLE
         Get-GitChangedFile
         # Get files changed in the most recent commit
@@ -42,8 +60,23 @@ function Get-GitChangedFile {
         # Get files changed in commit 3d6b25ebbc6bbf961a4c1045548bc9ff90879bc6,
         # Use the current directory as the git repo path
 
+    .EXAMPLE
+        Get-GitChangedFile -LeftRevision "origin/master"
+        # Shows the files that are "ahead" of orgin/master
+        # These are the same files that you would see if you used the
+        # Compare button to compare your current branch to master
+        # When one revision is not specified it is assumed to be
+        # HEAD (the currently checked out revision)
+        # This command is functionally equivalent to:
+        # Get-GitChangedFile -LeftRevision "origin/master" -RightRevision "Head"
+        # Get-Get-GitChangedFile -LeftRevision "origin/master" -RangeNotation "..." -RightRevision "Head"
+        # Get-Get-GitChangedFile -LeftRevision "origin/master" -RangeNotation "..."
+
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
+
+    .LINK
+        https://git-scm.com/docs/git-diff
 
     .LINK
         about_BuildHelpers
@@ -51,14 +84,48 @@ function Get-GitChangedFile {
     [cmdletbinding()]
     param(
         [validateScript({ Test-Path $_ -PathType Container })]
+        [Parameter(ParameterSetName="All")]
+        [Parameter(ParameterSetName="Commit")]
+        [Parameter(ParameterSetName="Range")]
+        [Parameter(ParameterSetName="RangeLeft")]
+        [Parameter(ParameterSetName="RangeRight")]
         $Path = $PWD.Path,
 
-        $Commit,
+        [Parameter(Mandatory,ParameterSetName="Commit")]$Commit,
 
+        [Parameter(Mandatory,ParameterSetName="Range")]
+        [Parameter(Mandatory,ParameterSetName="RangeLeft")]
+        [string]$LeftRevision,
+
+        [Parameter(ParameterSetName="Range")]
+        [Parameter(ParameterSetName="RangeLeft")]
+        [Parameter(ParameterSetName="RangeRight")]
+        [ValidateSet("..","...")]
+        [string]$RangeNotation="...",
+
+        [Parameter(Mandatory,ParameterSetName="Range")]
+        [Parameter(Mandatory,ParameterSetName="RangeRight")]
+        [string]$RightRevision,
+
+        [Parameter(ParameterSetName="All")]
+        [Parameter(ParameterSetName="Commit")]
+        [Parameter(ParameterSetName="Range")]
+        [Parameter(ParameterSetName="RangeLeft")]
+        [Parameter(ParameterSetName="RangeRight")]
         [string[]]$Include,
 
+        [Parameter(ParameterSetName="All")]
+        [Parameter(ParameterSetName="Commit")]
+        [Parameter(ParameterSetName="Range")]
+        [Parameter(ParameterSetName="RangeLeft")]
+        [Parameter(ParameterSetName="RangeRight")]
         [string[]]$Exclude,
 
+        [Parameter(ParameterSetName="All")]
+        [Parameter(ParameterSetName="Commit")]
+        [Parameter(ParameterSetName="Range")]
+        [Parameter(ParameterSetName="RangeLeft")]
+        [Parameter(ParameterSetName="RangeRight")]
         [switch]$Resolve
     )
     $Path = (Resolve-Path $Path).Path
@@ -73,19 +140,27 @@ function Get-GitChangedFile {
     {
         throw "Could not find root of git repo under [$Path].  Tried [$GitPath]"
     }
-
-    if(-not $PSBoundParameters.ContainsKey('Commit'))
+    write-warning "parameter set $($PSCmdlet.ParameterSetName)"
+    if($PSCmdlet.ParameterSetName -eq 'Commit')
     {
-        $Commit = Invoke-Git rev-parse HEAD -Path $GitPath
+        $revisionString = $Commit + "^!"
     }
-    if(-not $Commit)
+    elseif ($PSCmdlet.ParameterSetName -like 'Range*')
+    {
+        $revisionString = $LeftRevision + $RangeNotation + $RightRevision
+        Write-Verbose "revision string: $revisionString"
+    }
+    else 
+    {
+        $revisionString = "HEAD^!"
+    }
+    if(-not $revisionString)
     {
         return
     }
 
-    [string[]]$Files = Invoke-Git "diff-tree --no-commit-id --name-only -r $Commit" -Path $GitPath
-    if($Files.Count -gt 0)
-    {
+    [string[]]$Files = Invoke-Git "diff --name-only $revisionString" -Path $GitPath
+    if ($Files) {
         $Params = @{Collection = $Files}
         Write-Verbose "Found [$($Files.Count)] files with raw values:`n$($Files | Foreach-Object {"'$_'"} | Out-String)"
         if($Include)
