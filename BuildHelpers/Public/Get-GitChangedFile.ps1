@@ -24,13 +24,27 @@ function Get-GitChangedFile {
     .PARAMETER Include
         If specified, only return files that are '-like'
         an item in the -Include
+        If both Include and Exclude are specified, files that match the Include and don't match the Exclude will be returned
+        In other words, the Include is applied first, and then any Exclude patterns are removed
 
     .PARAMETER Exclude
         If specified, exclude any files that are '-like'
-        an item in the -Include
+        an item in the -Exclude
+        If both Include and Exclude are specified, files that match the Include and don't match the Exclude will be returned
+        In other words, the Include is applied first, and then any Exclude patterns are removed
 
     .PARAMETER Resolve
         If specified, run Resolve-Path on the determined git path and file in question
+
+    .PARAMETER DiffFilter
+        If specified, use this string as a value to the --diff-filter parameter of git diff.
+        Some examples:
+        "A" would only return files added
+        "M" would only return files modified
+        "AM" would only return files that were added or modified
+        "d" would exclude files that have been deleted
+        "dm" would exclude files that have been deleted or modified
+        More information on the --diff-filter available at https://git-scm.com/docs/git-diff#Documentation/git-diff.txt---diff-filterACDMRTUXB82308203
 
     .PARAMETER LeftRevision
         If specified, use this value as part of a range comparision along with RangeNotation and optionally RightRevision
@@ -91,7 +105,8 @@ function Get-GitChangedFile {
         [Parameter(ParameterSetName="RangeRight")]
         $Path = $PWD.Path,
 
-        [Parameter(Mandatory,ParameterSetName="Commit")]$Commit,
+        [Parameter(Mandatory,ParameterSetName="Commit")]
+        [string]$Commit,
 
         [Parameter(Mandatory,ParameterSetName="Range")]
         [Parameter(Mandatory,ParameterSetName="RangeLeft")]
@@ -107,29 +122,32 @@ function Get-GitChangedFile {
         [Parameter(Mandatory,ParameterSetName="RangeRight")]
         [string]$RightRevision,
 
-        [Parameter(ParameterSetName="All")]
-        [Parameter(ParameterSetName="Commit")]
-        [Parameter(ParameterSetName="Range")]
-        [Parameter(ParameterSetName="RangeLeft")]
-        [Parameter(ParameterSetName="RangeRight")]
+        [string]$DiffFilter,
+
+
         [string[]]$Include,
 
-        [Parameter(ParameterSetName="All")]
-        [Parameter(ParameterSetName="Commit")]
-        [Parameter(ParameterSetName="Range")]
-        [Parameter(ParameterSetName="RangeLeft")]
-        [Parameter(ParameterSetName="RangeRight")]
+
         [string[]]$Exclude,
 
-        [Parameter(ParameterSetName="All")]
-        [Parameter(ParameterSetName="Commit")]
-        [Parameter(ParameterSetName="Range")]
-        [Parameter(ParameterSetName="RangeLeft")]
-        [Parameter(ParameterSetName="RangeRight")]
         [switch]$Resolve
     )
     $Path = (Resolve-Path $Path).Path
-    $GitPathRaw = Invoke-Git rev-parse --show-toplevel -Path $Path
+    try
+    {
+        $GitPathRaw = Invoke-Git rev-parse --show-toplevel -Path $Path -ErrorAction Stop
+    }
+    catch
+    {
+        if ($_ -like "fatal: not a git repository*" )
+        {
+            throw "Could not find root of git repo under [$Path], are you sure [$Path] is in a git repository?"
+        }
+        else
+        {
+            throw $_
+        }
+    }
     Write-Verbose "Found git root [$GitPathRaw]"
     $GitPath = Resolve-Path $GitPathRaw
     if(Test-Path $GitPath)
@@ -140,7 +158,6 @@ function Get-GitChangedFile {
     {
         throw "Could not find root of git repo under [$Path].  Tried [$GitPath]"
     }
-    write-warning "parameter set $($PSCmdlet.ParameterSetName)"
     if($PSCmdlet.ParameterSetName -eq 'Commit')
     {
         $revisionString = $Commit + "^!"
@@ -154,6 +171,10 @@ function Get-GitChangedFile {
     {
         $revisionString = "HEAD^!"
     }
+    if ($PSBoundParameters.ContainsKey('DiffFilter'))
+    {
+        $revisionString += " --diff-filter=$DiffFilter"
+    }
     if(-not $revisionString)
     {
         return
@@ -161,15 +182,14 @@ function Get-GitChangedFile {
 
     [string[]]$Files = Invoke-Git "diff --name-only $revisionString" -Path $GitPath
     if ($Files) {
-        $Params = @{Collection = $Files}
         Write-Verbose "Found [$($Files.Count)] files with raw values:`n$($Files | Foreach-Object {"'$_'"} | Out-String)"
         if($Include)
         {
-            $Files = Invoke-LikeFilter @params -FilterArray $Include
+            $Files = Invoke-LikeFilter -Collection $Files -FilterArray $Include -FilterReplace '\','/'
         }
         if($Exclude)
         {
-            $Files = Invoke-LikeFilter @params -FilterArray $Exclude -Not
+            $Files = Invoke-LikeFilter -Collection $Files -FilterArray $Exclude -FilterReplace '\','/' -Not
         }
         foreach($item in $Files)
         {
