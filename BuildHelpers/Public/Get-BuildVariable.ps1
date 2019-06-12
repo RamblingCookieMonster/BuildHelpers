@@ -73,7 +73,10 @@ function Get-BuildVariable {
         $GitPath = 'git'
     )
 
-    $Path = ( Resolve-Path $Path ).Path
+    if($PSboundParameters.ContainsKey('Path')) {
+        $Path = ( Resolve-Path $Path ).Path
+    }
+    
     $Environment = Get-Item ENV:
     if(!$PSboundParameters.ContainsKey('GitPath')) {
         $GitPath = (Get-Command $GitPath -ErrorAction SilentlyContinue)[0].Path
@@ -150,73 +153,76 @@ function Get-BuildVariable {
         }
     }
 
-    # Find the git commit message
-    $CommitMessage = switch ($Environment.Name)
-    {
-        'APPVEYOR_REPO_COMMIT_MESSAGE' {
-            "$env:APPVEYOR_REPO_COMMIT_MESSAGE $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED".TrimEnd()
-            break
-        }
-        'CI_COMMIT_SHA' {
-            if($WeCanGit)
-            {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+    # Find the git commit message in environment when no path is provided
+    if(!$PSboundParameters.ContainsKey('Path')) {
+        $CommitMessage = switch ($Environment.Name)
+        {
+            'APPVEYOR_REPO_COMMIT_MESSAGE' {
+                "$env:APPVEYOR_REPO_COMMIT_MESSAGE $env:APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED".TrimEnd()
                 break
-            } # Gitlab 9.0+ - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
-        }
-        'CI_BUILD_REF' {
-            if($WeCanGit)
-            {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+            }
+            'CI_COMMIT_SHA' {
+                if($WeCanGit)
+                {
+                    Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                    break
+                } # Gitlab 9.0+ - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
+            }
+            'CI_BUILD_REF' {
+                if($WeCanGit)
+                {
+                    Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                    break
+                } # Gitlab 8.x - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
+            }
+            'GIT_COMMIT' {
+                if($WeCanGit)
+                {
+                    Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                    break
+                } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
+            }
+            'BUILD_SOURCEVERSIONMESSAGE' { #Azure Pipelines, present in classic build pipelines, and all YAML pipelines, but not classic release pipelines
+                ($env:BUILD_SOURCEVERSIONMESSAGE).split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
                 break
-            } # Gitlab 8.x - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
-        }
-        'GIT_COMMIT' {
-            if($WeCanGit)
-            {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                # Azure Pipelines Classic Build & YAML(https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
+            }
+            'AGENT_RELEASEDIRECTORY' { #Azure Pipelines, this will be triggered in the case of a release pipeline
+                if($WeCanGit)
+                {
+                    (Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )").split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
+                    break
+                } # Azure Pipelines Release (https://docs.microsoft.com/en-us/azure/devops/pipelines/release/variables)
+            }
+            'BUILD_VCS_NUMBER' {
+                if($WeCanGit)
+                {
+                    Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                    break
+                } # Teamcity https://confluence.jetbrains.com/display/TCD10/Predefined+Build+Parameters
+            }
+            'BAMBOO_REPOSITORY_REVISION_NUMBER' {
+                if($WeCanGit)
+                {
+                    Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                    break
+                } # Bamboo https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
+            }
+            'TRAVIS_COMMIT_MESSAGE' {
+                "$env:TRAVIS_COMMIT_MESSAGE"
                 break
-            } # Jenkins - thanks to mipadi http://stackoverflow.com/a/3357357/3067642
-        }
-        'BUILD_SOURCEVERSIONMESSAGE' { #Azure Pipelines, present in classic build pipelines, and all YAML pipelines, but not classic release pipelines
-            ($env:BUILD_SOURCEVERSIONMESSAGE).split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
-            break
-            # Azure Pipelines Classic Build & YAML(https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
-        }
-        'SYSTEM_DEFAULTWORKINGDIRECTORY' { #Azure Pipelines, this will be triggered in the case of a classic release pipeline
-            if($WeCanGit)
-            {
-                (Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )").split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
-                break
-            } # Azure Pipelines Classic Release (https://docs.microsoft.com/en-us/azure/devops/pipelines/release/variables)
-        }
-        'BUILD_VCS_NUMBER' {
-            if($WeCanGit)
-            {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
-                break
-            } # Teamcity https://confluence.jetbrains.com/display/TCD10/Predefined+Build+Parameters
-        }
-        'BAMBOO_REPOSITORY_REVISION_NUMBER' {
-            if($WeCanGit)
-            {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
-                break
-            } # Bamboo https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
-        }
-        'TRAVIS_COMMIT_MESSAGE' {
-            "$env:TRAVIS_COMMIT_MESSAGE"
-            break
-        }
-        'GITHUB_SHA' {
-            if($WeCanGit)
-            {
-                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
-                break
-            } # GitHub Actions https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#environment-variables
-        }
+            }
+            'GITHUB_SHA' {
+                if($WeCanGit)
+                {
+                    Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
+                    break
+                } # GitHub Actions https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#environment-variables
+            }
 
+        }
     }
+    #Fall-back on path when nothing is found
     if(-not $CommitMessage)
     {
         if($WeCanGit)
