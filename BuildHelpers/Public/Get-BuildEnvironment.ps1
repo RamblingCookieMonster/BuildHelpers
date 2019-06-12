@@ -83,7 +83,7 @@ function Get-BuildEnvironment {
         [string]$As = 'object'
     )
 
-    [System.Collections.ArrayList]$GBVParams = @{}
+    [System.Collections.Hashtable]$GBVParams = @{}
     if($PSboundParameters.ContainsKey('Path')) {
         $GBVParams.Path = ( Resolve-Path $Path ).Path
     }
