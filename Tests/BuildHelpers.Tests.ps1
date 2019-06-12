@@ -268,14 +268,20 @@ Describe 'Get-GitChangedFile' {
             @($Output)[0] | Should BeLike "*BuildHelpers\README.md"
         }
         It "should diff a range with two commits" {
-            $output = get-gitchangedfile -LeftRevision 3e6b1f247b62e583f443be28580c1c1ee8a92db4 -RightRevision c2f4eb0838999a7c867a89a45fbe9de3f38e9ca9
+            $output = Get-GitChangedFile -LeftRevision 3e6b1f247b62e583f443be28580c1c1ee8a92db4 -RightRevision c2f4eb0838999a7c867a89a45fbe9de3f38e9ca9
             @($Output).count | Should Be 13
             @($Output)[0] | Should BeLike "*BuildHelpers\BuildHelpers.psd1"
         }
         It "should diff an open range" {
             # This is comparing all the changes from the first commit until now, so the number will change as files are added and deleted, but it should always be at least 1
-            $Output = get-gitchangedfile -LeftRevision 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7
+            $Output = Get-GitChangedFile -LeftRevision 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7
             @($Output).Count | Should -BeGreaterThan 0
+            Test-Path @($Output)[0] | Should Be $true
+        }
+        It "should diff a manually specified revision string" {
+            $Output = Get-GitChangedFile -RawRevisionString "3e6b1f247b62e583f443be28580c1c1ee8a92db4...c2f4eb0838999a7c867a89a45fbe9de3f38e9ca9"
+            @($Output).count | Should Be 13
+            @($Output)[0] | Should BeLike "*BuildHelpers\BuildHelpers.psd1"
         }
         It "applies both include and exclude" {
             $params = @{

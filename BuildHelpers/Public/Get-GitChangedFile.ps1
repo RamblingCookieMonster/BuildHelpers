@@ -58,6 +58,10 @@ function Get-GitChangedFile {
     .PARAMETER RightRevision
         If specified, use this value as part of a range comparision along with RangeNotation and optionally LeftRevision
 
+    .PARAMETER RawRevisionString
+        If specified, this value will be passed directly to git diff instead of constructing a revsion based on other parameters.
+        This gives you more flexibility in how you specify your revisions
+
     .EXAMPLE
         Get-GitChangedFile
         # Get files changed in the most recent commit
@@ -86,6 +90,11 @@ function Get-GitChangedFile {
         # Get-Get-GitChangedFile -LeftRevision "origin/master" -RangeNotation "..." -RightRevision "Head"
         # Get-Get-GitChangedFile -LeftRevision "origin/master" -RangeNotation "..."
 
+    .Example
+        Get-GitChangedFile -RawRevisionString "origin/master..."
+
+        # Functionally equivalent to passing "origin/master" as a parameter to LeftRevision as described above
+
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
 
@@ -95,7 +104,7 @@ function Get-GitChangedFile {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [cmdletbinding(DefaultParameterSetName="All")]
     param(
         [validateScript({ Test-Path $_ -PathType Container })]
         [Parameter(ParameterSetName="All")]
@@ -103,6 +112,7 @@ function Get-GitChangedFile {
         [Parameter(ParameterSetName="Range")]
         [Parameter(ParameterSetName="RangeLeft")]
         [Parameter(ParameterSetName="RangeRight")]
+        [Parameter(ParameterSetName="RawRevision")]
         $Path = $PWD.Path,
 
         [Parameter(Mandatory,ParameterSetName="Commit")]
@@ -122,8 +132,11 @@ function Get-GitChangedFile {
         [Parameter(Mandatory,ParameterSetName="RangeRight")]
         [string]$RightRevision,
 
+        [ValidatePattern("^[ACDMRTUXBacdmrtuxb*]+$")]
         [string]$DiffFilter,
 
+        [Parameter(ParameterSetName="RawRevision")]
+        [string]$RawRevisionString,
 
         [string[]]$Include,
 
@@ -167,6 +180,10 @@ function Get-GitChangedFile {
         $revisionString = $LeftRevision + $RangeNotation + $RightRevision
         Write-Verbose "revision string: $revisionString"
     }
+    elseif ($PSCmdlet.ParameterSetName -eq 'RawRevision')
+    {
+        $revisionString = $RawRevisionString
+    }
     else 
     {
         $revisionString = "HEAD^!"
@@ -205,6 +222,6 @@ function Get-GitChangedFile {
     }
     else
     {
-        Write-Warning "Something went wrong, no files returned:`nIs [$Path], with repo root [$GitPath] a valid git path?"
+        Write-Warning "No files found that match the given criteria"
     }
 }
