@@ -82,14 +82,19 @@ function Get-BuildEnvironment {
         [validateset('object', 'hashtable')]
         [string]$As = 'object'
     )
-    $GBVParams = @{Path = $Path}
+
+    [System.Collections.ArrayList]$GBVParams
+    if($PSboundParameters.ContainsKey('Path')) {
+        $GBVParams.Path = ( Resolve-Path $Path ).Path
+    }
+    ${Build.ProjectName} = Get-ProjectName @GBVParams
+    ${Build.ManifestPath} = Get-PSModuleManifest @GBVParams
     if($PSBoundParameters.ContainsKey('GitPath'))
     {
-        $GBVParams.add('GitPath', $GitPath)
+        $GBVParams.GitPath = $GitPath
     }
     ${Build.Vars} = Get-BuildVariable @GBVParams
-    ${Build.ProjectName} = Get-ProjectName -Path $Path
-    ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
+
     if( ${Build.ManifestPath} ) {
         ${Build.ModulePath} = Split-Path -Path ${Build.ManifestPath} -Parent
     }

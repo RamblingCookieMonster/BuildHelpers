@@ -44,7 +44,9 @@
         $Path = $PWD.Path
     )
 
-    $Path = ( Resolve-Path $Path ).Path
+    if($PSboundParameters.ContainsKey('Path')) {
+        $Path = ( Resolve-Path $Path ).Path
+    }
 
     $CurrentFolder = Split-Path $Path -Leaf
     $ExpectedPath = Join-Path -Path $Path -ChildPath $CurrentFolder
