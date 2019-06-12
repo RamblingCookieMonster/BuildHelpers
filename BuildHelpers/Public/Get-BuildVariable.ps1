@@ -73,7 +73,7 @@ function Get-BuildVariable {
         $GitPath = 'git'
     )
 
-    $Path = ( Resolve-Path $Path ).Path
+    $Path = Get-FullPath $Path
     $Environment = Get-Item ENV:
     if(!$PSboundParameters.ContainsKey('GitPath')) {
         $GitPath = (Get-Command $GitPath -ErrorAction SilentlyContinue)[0].Path

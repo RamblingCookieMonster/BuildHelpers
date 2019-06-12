@@ -58,7 +58,7 @@ function Set-ModuleFormat {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = $Name
+            Name = Get-FullPath $Name
         }
 
         # Create a runspace

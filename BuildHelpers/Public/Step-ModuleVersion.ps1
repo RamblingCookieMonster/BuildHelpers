@@ -29,7 +29,8 @@
 .LINK
     New-ModuleManifest
 #>
-function Step-ModuleVersion {
+function Step-ModuleVersion
+{
     [CmdletBinding()]
     param(
         # Specifies a path a valid Module Manifest file.

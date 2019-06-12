@@ -1,6 +1,7 @@
 ﻿# All credit and major props to Joel Bennett for this simplified solution that doesn't depend on PowerShellGet
 # https://gist.github.com/Jaykul/1caf0d6d26380509b04cf4ecef807355
-function Find-NugetPackage {
+function Find-NugetPackage
+{
     <#
     .SYNOPSIS
         Query a Nuget feed for details on a package
@@ -58,6 +59,7 @@ function Find-NugetPackage {
     param(
         # The name of a package to find
         [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
         $Name,
         # The repository api URL -- like https://www.powershellgallery.com/api/v2/ or https://www.nuget.org/api/v2/
         $PackageSourceUrl = 'https://www.powershellgallery.com/api/v2/',

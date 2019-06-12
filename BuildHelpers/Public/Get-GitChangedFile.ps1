@@ -51,6 +51,7 @@ function Get-GitChangedFile {
     [cmdletbinding()]
     param(
         [validateScript({ Test-Path $_ -PathType Container })]
+        [ValidateNotNullOrEmpty()]
         $Path = $PWD.Path,
 
         $Commit,
@@ -61,10 +62,10 @@ function Get-GitChangedFile {
 
         [switch]$Resolve
     )
-    $Path = (Resolve-Path $Path).Path
+    $Path = Get-FullPath $Path
     $GitPathRaw = Invoke-Git rev-parse --show-toplevel -Path $Path
     Write-Verbose "Found git root [$GitPathRaw]"
-    $GitPath = Resolve-Path $GitPathRaw
+    $GitPath = Get-FullPath $GitPathRaw
     if(Test-Path $GitPath)
     {
         Write-Verbose "Using [$GitPath] as repo root"

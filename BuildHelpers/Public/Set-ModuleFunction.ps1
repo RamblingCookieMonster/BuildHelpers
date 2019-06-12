@@ -44,7 +44,7 @@ function Set-ModuleFunction {
         $params = @{
             Force = $True
             Passthru = $True
-            Name = (Resolve-Path $Name).Path
+            Name = Get-FullPath $Name
         }
 
         # Create a runspace, add script to run

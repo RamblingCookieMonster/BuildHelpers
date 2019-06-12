@@ -61,6 +61,8 @@ function Set-ShieldsIoBadge {
     )
     Process
     {
+        $Path = Get-FullPath $Path
+
         if (-not $Color)
         {
             $Color = switch ($Status)

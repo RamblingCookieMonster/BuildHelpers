@@ -12,6 +12,7 @@ $ModuleName = $ENV:BHProjectName
 
 Remove-Module $ModuleName
 Import-Module $PSScriptRoot\..\$ModuleName -Force
+Import-Module $PSScriptRoot\..\$ModuleName\Private\Modules\Configuration -Force
 
 Describe "$ModuleName PS$PSVersion" {
     Context 'Strict mode' {

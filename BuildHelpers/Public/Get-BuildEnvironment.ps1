@@ -66,6 +66,7 @@ function Get-BuildEnvironment {
     [cmdletbinding()]
     param(
         [validatescript({ Test-Path $_ -PathType Container })]
+        [ValidateNotNullOrEmpty()]
         $Path = $PWD.Path,
 
         [string]$BuildOutput = '$ProjectPath\BuildOutput',
@@ -82,7 +83,7 @@ function Get-BuildEnvironment {
         [validateset('object', 'hashtable')]
         [string]$As = 'object'
     )
-    $GBVParams = @{Path = $Path}
+    $GBVParams = @{Path = Get-FullPath $Path}
     if($PSBoundParameters.ContainsKey('GitPath'))
     {
         $GBVParams.add('GitPath', $GitPath)
