@@ -27,7 +27,7 @@ Describe "$ModuleName PS$PSVersion" {
     }
 }
 
-Describe "Get-ProjectName PS" {
+Describe "Get-ProjectName PS$PSVersion" {
     Context 'Strict mode' {
 
         Set-StrictMode -Version latest
