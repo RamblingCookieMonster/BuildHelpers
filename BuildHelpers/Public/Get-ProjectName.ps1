@@ -102,7 +102,7 @@ function Get-ProjectName
         #very ick or just an icky time in Azure Pipelines
         elseif ( $PSDs = Get-ChildItem -Path $Path "*.psd1" )
         {
-            if ($test.count -gt 1) {
+            if ($PSDs.count -gt 1) {
                 Write-Warning "Found more than one project manifest in the root folder"
             }
             $result = $PSDs.BaseName

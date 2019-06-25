@@ -63,6 +63,11 @@ Describe "Get-ProjectName PS" {
                 Assert-MockCalled Invoke-Git -ModuleName BuildHelpers -Exactly 1
             }
         }
+        It 'should default to the root directory if nthing else' {
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectDefault
+            $ProjectName | Should Be 'ProjectDefault'
+
+        }
         
     }
 }
