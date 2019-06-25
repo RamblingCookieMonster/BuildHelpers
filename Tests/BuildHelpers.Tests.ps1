@@ -296,9 +296,7 @@ Describe 'Get-GitChangedFile' {
 Describe 'Invoke-Git' {
     Context 'This repository' {
         It 'Should find the root of the BuildHelpers repo' {
-            $output = Invoke-Git rev-parse --show-toplevel -Path $PSScriptRoot
-            $output = $output -replace "/","\"
-            $PSScriptRoot | Should BeLike ($output+"*")
+            Invoke-Git rev-parse --show-toplevel -Path $PSScriptRoot | Should BeLike "*BuildHelpers"
         }
     }
 
