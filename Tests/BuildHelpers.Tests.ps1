@@ -27,7 +27,7 @@ Describe "$ModuleName PS$PSVersion" {
     }
 }
 
-Describe "Get-ProjectName PS$PSVersion" {
+Describe "Get-ProjectName PS" {
     Context 'Strict mode' {
 
         Set-StrictMode -Version latest
@@ -35,10 +35,6 @@ Describe "Get-ProjectName PS$PSVersion" {
         It 'Should pick by same name nested folder' {
             $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectX
             $ProjectName | Should Be 'ProjectX'
-        }
-        It 'Should pick by PSD1 in folder' {
-            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectPSD
-            $ProjectName | Should Be 'ProjectPSD'
         }
         It 'Should pick by PSD1 in subfolder' {
             $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectSubPSD
@@ -48,6 +44,26 @@ Describe "Get-ProjectName PS$PSVersion" {
             $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectWTF
             $ProjectName | Should Be 'ProjectEvil'
         }
+        It 'Should pick by PSD1 in folder' {
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectPSD
+            $ProjectName | Should Be 'ProjectPSD'
+        }
+        It 'Should pick by PSD1 in folder with a different name' {
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectExtraIck
+            $ProjectName | Should Be 'ProjectIck'
+        }
+        Context 'Invoking Git' {
+            Mock Invoke-Git -ModuleName BuildHelpers {"https://github.com/user/ProjectUseGit.git"}
+            Mock Test-Path -ModuleName BuildHelpers {$true} -ParameterFilter {$path -like "*.git"}
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectUseGit2
+            It 'should pick name using Git' {
+                $ProjectName | Should Be 'ProjectUseGit'
+            }
+            It 'should call Invoke-Git' {
+                Assert-MockCalled Invoke-Git -ModuleName BuildHelpers -Exactly 1
+            }
+        }
+        
     }
 }
 
@@ -275,7 +291,9 @@ Describe 'Get-GitChangedFile' {
 Describe 'Invoke-Git' {
     Context 'This repository' {
         It 'Should find the root of the BuildHelpers repo' {
-            Invoke-Git rev-parse --show-toplevel -Path $PSScriptRoot | Should BeLike "*BuildHelpers"
+            $output = Invoke-Git rev-parse --show-toplevel -Path $PSScriptRoot
+            $output = $output -replace "/","\"
+            $PSScriptRoot | Should BeLike ($output+"*")
         }
     }
 

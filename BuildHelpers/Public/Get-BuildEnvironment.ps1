@@ -88,7 +88,7 @@ function Get-BuildEnvironment {
         $GBVParams.add('GitPath', $GitPath)
     }
     ${Build.Vars} = Get-BuildVariable @GBVParams
-    ${Build.ProjectName} = Get-ProjectName -Path $Path
+    ${Build.ProjectName} = Get-ProjectName @GBVParams
     ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
     if( ${Build.ManifestPath} ) {
         ${Build.ModulePath} = Split-Path -Path ${Build.ManifestPath} -Parent
