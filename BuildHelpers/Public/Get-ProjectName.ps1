@@ -99,14 +99,14 @@ function Get-ProjectName
             $result = $CurrentFolder
         }
         #PSD1 in root of project but name doesn't match
-        #very ick or just an icky time in Azure Devops
+        #very ick or just an icky time in Azure Pipelines
         elseif ( $PSDs = Get-ChildItem -Path $Path "*.psd1" )
         {
             if ($test.count -eq 1) {
                 $result = $PSDs.BaseName
             }
         }
-        #Last ditch, are you in Azure Devops or another CI that checks into a folder unrelated to the project?
+        #Last ditch, are you in Azure Pipelines or another CI that checks into a folder unrelated to the project?
         #let's try some git
         elseif ( $WeCanGit ) {
             $result = (Invoke-Git -Path $Path -GitPath $GitPath -Arguments "remote get-url origin").Split('/')[-1] -replace "\.git",""
