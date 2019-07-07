@@ -33,6 +33,9 @@ function Find-NugetPackage {
             PSGallery Module URL: https://www.powershellgallery.com/api/v2/ (default)
             PSGallery Script URL: https://www.powershellgallery.com/api/v2/items/psscript/
 
+    .PARAMETER Credential
+        Use if repository requires basic authentication
+
     .EXAMPLE
         Find-NugetPackage PSDepend -IsLatest
 
@@ -65,7 +68,9 @@ function Find-NugetPackage {
         #If specified takes precedence over version
         [switch]$IsLatest,
 
-        [string]$Version
+        [string]$Version,
+
+        [PSCredential]$Credential
     )
 
     #Ugly way to do this.  Prefer islatest, otherwise look for version, otherwise grab all matching modules
@@ -85,7 +90,7 @@ function Find-NugetPackage {
         $URI = Join-Part -Separator / -Parts $PackageSourceUrl ,"Packages?`$filter=Id eq '$name'"
     }
 
-    Invoke-RestMethod $URI |
+    Invoke-RestMethod $URI -Credential $Credential |
     Select-Object @{n='Name';ex={$_.title.('#text')}},
                   @{n='Author';ex={$_.author.name}},
                   @{n='Version';ex={
