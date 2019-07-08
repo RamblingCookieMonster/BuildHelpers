@@ -89,8 +89,16 @@ function Find-NugetPackage {
         Write-Verbose "Searching for all versions of [$name] module"
         $URI = Join-Part -Separator / -Parts $PackageSourceUrl ,"Packages?`$filter=Id eq '$name'"
     }
+    
+    $params = @{
+        Uri = $Uri
+    }
 
-    Invoke-RestMethod $URI -Credential $Credential |
+    if($PSBoundParameters.ContainsKey('Credential')){
+        $Params.add('Credential', $Credential)
+    }
+
+    Invoke-RestMethod @params |
     Select-Object @{n='Name';ex={$_.title.('#text')}},
                   @{n='Author';ex={$_.author.name}},
                   @{n='Version';ex={
