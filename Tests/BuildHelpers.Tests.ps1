@@ -36,10 +36,6 @@ Describe "Get-ProjectName PS$PSVersion" {
             $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectX
             $ProjectName | Should Be 'ProjectX'
         }
-        It 'Should pick by PSD1 in folder' {
-            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectPSD
-            $ProjectName | Should Be 'ProjectPSD'
-        }
         It 'Should pick by PSD1 in subfolder' {
             $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectSubPSD
             $ProjectName | Should Be 'ProjectSubPSD'
@@ -48,6 +44,31 @@ Describe "Get-ProjectName PS$PSVersion" {
             $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectWTF
             $ProjectName | Should Be 'ProjectEvil'
         }
+        It 'Should pick by PSD1 in folder' {
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectPSD
+            $ProjectName | Should Be 'ProjectPSD'
+        }
+        It 'Should pick by PSD1 in folder with a different name' {
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectExtraIck
+            $ProjectName | Should Be 'ProjectIck'
+        }
+        Context 'Invoking Git' {
+            Mock Invoke-Git -ModuleName BuildHelpers {"https://github.com/user/ProjectUseGit.git"}
+            Mock Test-Path -ModuleName BuildHelpers {$true} -ParameterFilter {$path -like "*.git"}
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectUseGit2
+            It 'should pick name using Git' {
+                $ProjectName | Should Be 'ProjectUseGit'
+            }
+            It 'should call Invoke-Git' {
+                Assert-MockCalled Invoke-Git -ModuleName BuildHelpers -Exactly 1
+            }
+        }
+        It 'should default to the root directory if nthing else' {
+            $ProjectName = Get-ProjectName @Verbose $PSScriptRoot\TestData\ProjectDefault
+            $ProjectName | Should Be 'ProjectDefault'
+
+        }
+        
     }
 }
 
