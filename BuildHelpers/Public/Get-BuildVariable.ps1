@@ -35,6 +35,7 @@ function Get-BuildVariable {
                 BranchName: git branch for this build
                 CommitMessage: git commit message for this build
                 BuildNumber: Build number provided by the CI system
+                IsPullRequest: "True" if CI says the current build is the result of a PR, otherwise this value will not be present
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path

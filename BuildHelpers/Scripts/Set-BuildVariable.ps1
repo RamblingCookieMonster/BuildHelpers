@@ -111,10 +111,14 @@ $BuildHelpersVariables = @{
     ProjectPath = ${Build.Vars}.ProjectPath
     BranchName  = ${Build.Vars}.BranchName
     CommitMessage = ${Build.Vars}.CommitMessage
+    CommitHash = ${Build.Vars}.CommitHash
     BuildNumber = ${Build.Vars}.BuildNumber
     ProjectName = ${Build.ProjectName}
     PSModuleManifest = ${Build.ManifestPath}
     ModulePath = $(Split-Path -Path ${Build.ManifestPath} -Parent)
+}
+if (${Build.Vars}.IsPullRequest) {
+    $BuildHelpersVariables.IsPullRequest = ${Build.Vars}.IsPullRequest
 }
 foreach ($VarName in $BuildHelpersVariables.Keys) {
     Set-Variable -Scope $Scope -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName]
