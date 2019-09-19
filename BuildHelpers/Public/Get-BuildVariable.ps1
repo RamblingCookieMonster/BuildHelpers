@@ -183,10 +183,10 @@ function Get-BuildVariable {
             break
             # Azure Pipelines Classic Build & YAML(https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
         }
-        'SYSTEM_DEFAULTWORKINGDIRECTORY' { #Azure Pipelines, this will be triggered in the case of a classic release pipeline
+        'BUILD_SOURCEVERSION' { #Azure Pipelines, this will be triggered in the case of a classic release pipeline
             if($WeCanGit)
             {
-                (Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )").split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Azure Pipelines Classic Release (https://docs.microsoft.com/en-us/azure/devops/pipelines/release/variables)
         }
