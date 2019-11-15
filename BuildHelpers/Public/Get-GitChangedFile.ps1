@@ -115,7 +115,7 @@ function Get-GitChangedFile {
         [Parameter(ParameterSetName="RawRevision")]
         $Path = $PWD.Path,
 
-        [Parameter(Mandatory,ParameterSetName="Commit")]
+        [Parameter(Mandatory,ParameterSetName="Commit",Position=0)]
         [string]$Commit,
 
         [Parameter(Mandatory,ParameterSetName="Range")]
@@ -173,7 +173,7 @@ function Get-GitChangedFile {
     }
     if($PSCmdlet.ParameterSetName -eq 'Commit')
     {
-        $revisionString = $Commit + "^!"
+        $revisionString = "$Commit^..$Commit"
     }
     elseif ($PSCmdlet.ParameterSetName -like 'Range*')
     {
@@ -184,9 +184,9 @@ function Get-GitChangedFile {
     {
         $revisionString = $RawRevisionString
     }
-    else 
+    else
     {
-        $revisionString = "HEAD^!"
+        $revisionString = "HEAD^..HEAD"
     }
     if ($PSBoundParameters.ContainsKey('DiffFilter'))
     {
