@@ -243,7 +243,7 @@ function Get-BuildVariable {
     {
         if($WeCanGit)
         {
-            $CommitMessage = Invoke-Git @IGParams -Arguments "log --format=%H -n 1"
+            $CommitHash = Invoke-Git @IGParams -Arguments "log --format=%H -n 1"
         }        
     }
     # Build number
