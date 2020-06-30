@@ -272,23 +272,81 @@ Describe 'Step-ModuleVersion' {
 Describe 'Get-GitChangedFile' {
     Context 'This repository' {
 
-        # TODO: Fix this.  Merge commits will fail this test, makes this test somewhat pointless?
-        # It 'Should find at least one file from the last commit in this repo' {
-        #     $Output = Get-GitChangedFile
-        #     @($Output).count | Should BeGreaterThan 0
-        #     Test-Path @($Output)[0] | Should Be $true
-        # }
+        It 'Should find at least one file from the last commit in this repo' {
+            $Output = Get-GitChangedFile
+            @($Output).count | Should BeGreaterThan 0
+            Test-Path @($Output)[0] | Should Be $true
+        }
 
         It 'Should find files changed in a specified commit in this repo' {
             $Output = Get-GitChangedFile -Commit 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7 -ErrorAction SilentlyContinue -Include README*
             @($Output).count | Should Be 1
             @($Output)[0] | Should BeLike "*BuildHelpers\README.md"
         }
+        It "should properly apply diff filter" {
+            $Output = Get-GitChangedFile -Commit 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7 -DiffFilter "M" -ErrorAction SilentlyContinue
+            @($Output).count | Should Be 1
+            @($Output)[0] | Should BeLike "*BuildHelpers\README.md"
+        }
+        It "should diff a range with two commits" {
+            $output = Get-GitChangedFile -LeftRevision 3e6b1f247b62e583f443be28580c1c1ee8a92db4 -RightRevision c2f4eb0838999a7c867a89a45fbe9de3f38e9ca9
+            @($Output).count | Should Be 13
+            @($Output)[0] | Should BeLike "*BuildHelpers\BuildHelpers.psd1"
+        }
+        It "should diff an open range" {
+            # This is comparing all the changes from the first commit until now, so the number will change as files are added and deleted, but it should always be at least 1
+            $Output = Get-GitChangedFile -LeftRevision 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7
+            @($Output).Count | Should -BeGreaterThan 0
+            Test-Path @($Output)[0] | Should Be $true
+        }
+        It "should diff a manually specified revision string" {
+            $Output = Get-GitChangedFile -RawRevisionString "3e6b1f247b62e583f443be28580c1c1ee8a92db4...c2f4eb0838999a7c867a89a45fbe9de3f38e9ca9"
+            @($Output).count | Should Be 13
+            @($Output)[0] | Should BeLike "*BuildHelpers\BuildHelpers.psd1"
+        }
+        It "applies both include and exclude" {
+            $params = @{
+                LeftRevision = "3e6b1f247b62e583f443be28580c1c1ee8a92db4"
+                RightRevision = "c2f4eb0838999a7c867a89a45fbe9de3f38e9ca9"
+                Include = "*.ps1"
+                Exclude = "*/Public/*"
+            }
+            #This will get all *.ps1 files that aren't in the Public Directory
+            $Output = get-gitchangedfile @params
+            @($Output).Count | Should -Be 4
+            @($Output)[0] | Should -BeLike "*Tests\BuildHelpers.Tests.ps1"
+        }
+        It "Normalizes slashes to the Unix form used with Git" {
+            $Output = Get-GitChangedFile -Commit 01b3931e6ed5d3d16cbcae25fcf98d185c1375b7 -Include "Tests\*"
+            @($Output).Count | Should -Be 2
+            @($Output)[0] | Should -BeLike "*Tests\BuildHelpers.Tests.ps1"
+        }
     }
 
     Context 'Invalid repository' {
-        It "Should fail if we don't find a valid git repo" {
-            {Get-GitChangedFile C:\ -ErrorAction Stop} | Should Throw
+        It "Should fail with proper message if we don't find a valid git repo" {
+            {Get-GitChangedFile -Path C:\} | Should Throw "Could not find root of git repo under [C:\], are you sure [C:\] is in a git repository?"
+        }
+    }
+}
+
+InModuleScope BuildHelpers {
+    Describe "Invoke-LikeFilter" {
+        It "Includes strings that match FilterArray" {
+            $output = Invoke-LikeFilter -Collection "hello","goodbye" -FilterArray "*llo"
+            @($output).Count | Should -be 1
+            $output | Should -be "hello"
+        }
+        It "Excludes strings that match FilterArray" {
+            $output = Invoke-LikeFilter -Collection "hello","goodbye" -FilterArray "*llo" -Not
+            @($output).Count | Should -be 1
+            $output | Should -be "goodbye"
+        }
+        It "replaces filter strings" {
+            $output = Invoke-LikeFilter -Collection "hello1","hello2","goodbye1","goodbye2" -FilterArray "*3" -FilterReplace "3","2"
+            @($output).Count | Should -be 2
+            $output | Should -Contain "hello2"
+            $output | Should -Contain "goodbye2"
         }
     }
 }
