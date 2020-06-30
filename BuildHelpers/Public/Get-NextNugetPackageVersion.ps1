@@ -53,8 +53,14 @@
         {
             Try
             {
+                $params = @{
+                    Name = $Item
+                }
+                if($PSBoundParameters.ContainsKey('Credential')){
+                    $Params.add('Credential', $Credential)
+                }
                 $Existing = $null
-                $Existing = Find-NugetPackage -Name $Item -PackageSourceUrl $PackageSourceUrl -Credential $Credential -IsLatest -ErrorAction Stop
+                $Existing = Find-NugetPackage @params -PackageSourceUrl $PackageSourceUrl -Credential $Credential -IsLatest -ErrorAction Stop
             }
             Catch
             {
