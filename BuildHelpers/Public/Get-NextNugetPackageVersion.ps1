@@ -60,7 +60,7 @@
                     $Params.add('Credential', $Credential)
                 }
                 $Existing = $null
-                $Existing = Find-NugetPackage @params -PackageSourceUrl $PackageSourceUrl -Credential $Credential -IsLatest -ErrorAction Stop
+                $Existing = Find-NugetPackage @params -PackageSourceUrl $PackageSourceUrl -IsLatest -ErrorAction Stop
             }
             Catch
             {
