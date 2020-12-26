@@ -250,7 +250,7 @@ function Get-BuildVariable {
     $BuildNumber = switch ($Environment.Name)
     {
         'APPVEYOR_BUILD_NUMBER' { (Get-Item -Path "ENV:$_").Value; break } # AppVeyor
-        'CI_JOB_ID'             { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+ - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
+        'CI_PIPELINE_ID'        { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 9.0+ - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'CI_BUILD_ID'           { (Get-Item -Path "ENV:$_").Value; break } # GitLab CI 8.x - not perfect https://gitlab.com/gitlab-org/gitlab-ce/issues/3691
         'BUILD_NUMBER'          { (Get-Item -Path "ENV:$_").Value; break } # Jenkins, Teamcity ... seems generic.
         'BUILD_BUILDNUMBER'     { (Get-Item -Path "ENV:$_").Value; break } # Azure Pipelines
