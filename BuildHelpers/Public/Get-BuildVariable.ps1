@@ -35,6 +35,7 @@ function Get-BuildVariable {
                 BranchName: git branch for this build
                 CommitMessage: git commit message for this build
                 BuildNumber: Build number provided by the CI system
+                IsPullRequest: "True" if CI says the current build is the result of a PR, otherwise this value will not be present
 
     .PARAMETER Path
         Path to project root. Defaults to the current working path
@@ -263,7 +264,20 @@ function Get-BuildVariable {
         $BuildNumber = 0
     }
 
-    [pscustomobject]@{
+    $PullRequest = switch ($BuildSystem)
+    {
+        'AppVeyor'        {if ($Environment.APPVEYOR_PULL_REQUEST_NUMBER) {"True"}; break}
+        'GitLab CI'       {if ($Environment.CI_MERGE_REQUEST_ID) {"True"}; break}
+        'Azure Pipelines' {if ($ENV:BUILD_REASON -eq "PullRequest") {"True"}; break}
+        'Bamboo'          {if ($Environment.bamboo.repository.pr.key) {"True"}; break}
+        'GoCD'            {if ($Environment.PR_TITLE) {"True"}; break}
+        'Travis CI'       {if ($ENV:TRAVIS_EVENT_TYPE -eq "pull_request") {"True"}; break}
+        'GitHub Actions'  {if ($ENV:GITHUB_EVENT_NAME -eq "pull_request") {"True"}; break}
+        #'Jenkins' {if ($Environment.CHANGE_ID) {"True"}} ???? is this correct?
+        #'Teamcity' {if ???????) {"True"}} who even knows
+    }
+
+    $ReturnHash = @{
         BuildSystem = $BuildSystem
         ProjectPath = $BuildRoot
         BranchName = $BuildBranch
@@ -271,4 +285,10 @@ function Get-BuildVariable {
         CommitHash = $CommitHash
         BuildNumber = $BuildNumber
     }
+    if ($PullRequest) {
+        $ReturnHash['IsPullRequest'] = $PullRequest
+    }
+
+    [PSCustomObject]$ReturnHash
+
 }
