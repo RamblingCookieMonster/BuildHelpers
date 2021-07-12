@@ -77,7 +77,7 @@ function Set-ModuleAlias {
         }
 
         If ($PSCmdlet.ShouldProcess("Updating Module's exported Aliases")) {
-            Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
+            Configuration\Update-MetaData -Path $ModulePSD1Path -PropertyName AliasesToExport -Value $AliasesToExport
         }
 
         # Close down the runspace

@@ -100,7 +100,7 @@ function Set-ModuleFormat {
         }
 
         If ($PSCmdlet.ShouldProcess("Updating Module's FormatsToProcess")) {
-            Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
+            Configuration\Update-MetaData -Path $ModulePSD1Path -PropertyName FormatsToProcess -Value $FormatsToProcess
         }
 
         # Close down the runspace

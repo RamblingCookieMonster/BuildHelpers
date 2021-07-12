@@ -75,7 +75,7 @@ function Set-ModuleFunction {
         }
 
         If ($PSCmdlet.ShouldProcess("Updating list of exported functions")) {
-            Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
+            Configuration\Update-MetaData -Path $ModulePSD1Path -PropertyName FunctionsToExport -Value $FunctionsToExport
         }
 
         # Close down the runspace

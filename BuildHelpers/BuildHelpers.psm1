@@ -1,4 +1,5 @@
 #Get public and private function definition files.
+#Get public and private function definition files.
 $Public  = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
 # $ModuleRoot = $PSScriptRoot
@@ -16,25 +17,7 @@ Foreach($import in @($Public + $Private))
     }
 }
 
-# Load dependencies. TODO: Move to module dependency once the bug that
-# causes this is fixed: https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers/build/1.0.22
-# Thanks to Joel Bennett for this!
-$fallbackModule = Get-Module -Name $PSScriptRoot\Private\Modules\Configuration -ListAvailable
-if ($configModule = Get-Module $fallbackModule.Name -ListAvailable)
-{
-    $configModule |
-        Where-Object { $_.Version -gt $fallbackModule.Version} |
-        Sort-Object -Property Version -Descending |
-        Select-Object -First 1 |
-        Import-Module -Force
-}
-if (-not (Get-Module $fallbackModule.Name | Where-Object { $_.Version -gt $fallbackModule.Version}))
-{
-    $fallbackModule | Import-Module -Force
-}
-
 Export-ModuleMember -Function $Public.Basename
-Export-ModuleMember -Function Get-Metadata, Update-Metadata, Export-Metadata
 
 # Set aliases (#10)
 Set-Alias -Name Set-BuildVariable -Value $PSScriptRoot\Scripts\Set-BuildVariable.ps1

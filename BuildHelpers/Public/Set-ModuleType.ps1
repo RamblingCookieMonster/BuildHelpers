@@ -100,7 +100,7 @@ function Set-ModuleType {
         }
 
         If ($PSCmdlet.ShouldProcess("Updating Module's TypesToProcess")) {
-            Update-MetaData -Path $ModulePSD1Path -PropertyName TypesToProcess -Value $TypesToProcess
+            Configuration\Update-MetaData -Path $ModulePSD1Path -PropertyName TypesToProcess -Value $TypesToProcess
         }
 
         # Close down the runspace
