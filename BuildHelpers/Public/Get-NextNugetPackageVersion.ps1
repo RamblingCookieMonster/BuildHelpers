@@ -23,6 +23,9 @@
             PSGallery Module URL: https://www.powershellgallery.com/api/v2/ (default)
             PSGallery Script URL: https://www.powershellgallery.com/api/v2/items/psscript/
 
+    .PARAMETER Credential
+        Use if repository requires basic authentication
+
     .EXAMPLE
         Get-NextNugetPackageVersion PSDeploy
 
@@ -40,7 +43,9 @@
         [parameter(ValueFromPipelineByPropertyName=$True)]
         [string[]]$Name,
 
-        [string]$PackageSourceUrl = 'https://www.powershellgallery.com/api/v2/'
+        [string]$PackageSourceUrl = 'https://www.powershellgallery.com/api/v2/',
+
+        [PSCredential]$Credential 
     )
     Process
     {
@@ -48,8 +53,14 @@
         {
             Try
             {
+                $params = @{
+                    Name = $Item
+                }
+                if($PSBoundParameters.ContainsKey('Credential')){
+                    $Params.add('Credential', $Credential)
+                }
                 $Existing = $null
-                $Existing = Find-NugetPackage -Name $Item -PackageSourceUrl $PackageSourceUrl -IsLatest -ErrorAction Stop
+                $Existing = Find-NugetPackage @params -PackageSourceUrl $PackageSourceUrl -IsLatest -ErrorAction Stop
             }
             Catch
             {

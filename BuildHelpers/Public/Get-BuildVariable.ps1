@@ -65,7 +65,7 @@ function Get-BuildVariable {
     param(
         $Path = $PWD.Path,
         [validatescript({
-            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
+            if(-not (Get-Command $_ -CommandType Application -ErrorAction SilentlyContinue))
             {
                 throw "Could not find command at GitPath [$_]"
             }
@@ -77,10 +77,10 @@ function Get-BuildVariable {
     $Path = ( Resolve-Path $Path ).Path
     $Environment = Get-Item ENV:
     if(!$PSboundParameters.ContainsKey('GitPath')) {
-        $GitPath = (Get-Command $GitPath -ErrorAction SilentlyContinue)[0].Path
+        $GitPath = (Get-Command $GitPath -CommandType Application -ErrorAction SilentlyContinue)[0].Path
     }
 
-    $WeCanGit = ( (Test-Path $( Join-Path $Path .git )) -and (Get-Command $GitPath -ErrorAction SilentlyContinue) )
+    $WeCanGit = ( (Test-Path $( Join-Path $Path .git )) -and (Get-Command $GitPath -CommandType Application -ErrorAction SilentlyContinue) )
     if($WeCanGit)
     {
         $IGParams = @{
@@ -184,10 +184,10 @@ function Get-BuildVariable {
             break
             # Azure Pipelines Classic Build & YAML(https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables)
         }
-        'SYSTEM_DEFAULTWORKINGDIRECTORY' { #Azure Pipelines, this will be triggered in the case of a classic release pipeline
+        'BUILD_SOURCEVERSION' { #Azure Pipelines, this will be triggered in the case of a classic release pipeline
             if($WeCanGit)
             {
-                (Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )").split([Environment]::NewLine,[System.StringSplitOptions]::RemoveEmptyEntries) -join " "
+                Invoke-Git @IGParams -Arguments "log --format=%B -n 1 $( (Get-Item -Path "ENV:$_").Value )"
                 break
             } # Azure Pipelines Classic Release (https://docs.microsoft.com/en-us/azure/devops/pipelines/release/variables)
         }
@@ -244,7 +244,7 @@ function Get-BuildVariable {
     {
         if($WeCanGit)
         {
-            $CommitMessage = Invoke-Git @IGParams -Arguments "log --format=%H -n 1"
+            $CommitHash = Invoke-Git @IGParams -Arguments "log --format=%H -n 1"
         }        
     }
     # Build number
