@@ -15,6 +15,7 @@ function Get-BuildEnvironment {
             CommitMessage    via Get-BuildVariable
             CommitHash       via Get-BuildVariable
             BuildNumber      via Get-BuildVariable
+            IsPullRequest    via Get-BuildVariable
             ProjectName      via Get-ProjectName
             PSModuleManifest via Get-PSModuleManifest
             ModulePath       via Split-Path on PSModuleManifest
@@ -106,6 +107,11 @@ function Get-BuildEnvironment {
         ProjectName = ${Build.ProjectName}
         PSModuleManifest = ${Build.ManifestPath}
         ModulePath = ${Build.ModulePath}
+    }
+    if (${Build.Vars}.IsPullRequest) {
+        #This will ensure IsPullRequest is inserted into the ordered table after the BuildNumber property
+        $index = $($BuildHelpersVariables.keys).IndexOf("BuildNumber")
+        $BuildHelpersVariables.Insert($index+1,"IsPullRequest",${Build.Vars}.IsPullRequest)
     }
     foreach($VarName in $BuildHelpersVariables.keys){
         $BuildOutput = $BuildOutput -replace "\`$$VarName", $BuildHelpersVariables[$VarName]
