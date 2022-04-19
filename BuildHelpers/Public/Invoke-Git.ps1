@@ -81,75 +81,56 @@
     )
 
     $Path = (Resolve-Path $Path).Path
-    # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
-    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
     if(!$PSBoundParameters.ContainsKey('GitPath')) {
         $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
     }
-    $pinfo.FileName = $GitPath
-    $Command = $GitPath
-    $pinfo.CreateNoWindow = $NoWindow
-    $pinfo.RedirectStandardError = $RedirectStandardError
-    $pinfo.RedirectStandardOutput = $RedirectStandardOutput
-    $pinfo.UseShellExecute = $UseShellExecute
-    $pinfo.WorkingDirectory = $Path
-    if($PSBoundParameters.ContainsKey('Arguments'))
-    {
-        $pinfo.Arguments = $Arguments
-        $Command = "$Command $Arguments"
+    # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
+    $pinfo = [System.Diagnostics.ProcessStartInfo]@{
+        FileName               = $GitPath
+        Arguments              = ''
+        WorkingDirectory       = $Path
+        UseShellExecute        = $UseShellExecute
+        CreateNoWindow         = $NoWindow
+        RedirectStandardOutput = $RedirectStandardOutput
+        RedirectStandardError  = $RedirectStandardError
     }
-    $p = New-Object System.Diagnostics.Process
-    $p.StartInfo = $pinfo
-    $null = $p.Start()
+    $Command = $GitPath
+    if (![string]::IsNullOrWhiteSpace($Arguments)) {
+        $pinfo.Arguments = $Arguments
+        $Command = '{0} {1}' -f $Command, $Arguments
+    }
+    $p = [System.Diagnostics.Process]::Start($pInfo)
+
+    $stringBuilder = [text.stringbuilder]::new()
+    while ($null -ne ($line = $p.StandardOutput.ReadLine())) {
+        $null = $stringBuilder.AppendLine($line.Trim())
+    }
+    $stdout = if ($split) { $stringBuilder.ToString() -split "`n" } else { $stringBuilder.ToString() }
+
+    $null = $stringBuilder.Clear()
+    while ($null -ne ($line = $p.StandardError.ReadLine())) {
+        $null = $stringBuilder.AppendLine($line.Trim())
+    }
+    $stderr = if ($split) { $stringBuilder.ToString() -split "`n" } else { $stringBuilder.ToString() }
+
     $p.WaitForExit()
-    if($Quiet)
-    {
+    if ($Quiet) {
         return
     }
-    else
-    {
-        #there was a newline in output...
-        if($stdout = $p.StandardOutput.ReadToEnd())
-        {
-            if($split)
-            {
-                $stdout = $stdout -split "`n"  | Where-Object {$_}
-            }
-            $stdout = foreach($item in @($stdout)){
-                $item.trim()
-            }
-        }
-        if($stderr = $p.StandardError.ReadToEnd())
-        {
-            if($split)
-            {
-                $stderr = $stderr -split "`n" | Where-Object {$_}
-            }
-            $stderr = foreach($item in @($stderr)){
-                $item.trim()
-            }
-        }
 
-        if($Raw)
-        {
-            [pscustomobject]@{
-                Command = $Command
-                Output = $stdout
-                Error = $stderr
-            }
+    if ($Raw) {
+        [pscustomobject]@{
+            Command = $Command
+            Output  = $stdout
+            Error   = $stderr
         }
-        else
-        {
-            if($stdout)
-            {
-                $stdout
-            }
-            if($stderr)
-            {
-                foreach ($errLine in $stderr) 
-                {
-                    Write-Error $errLine.trim()
-                }
+    } else {
+        if ($stdout) {
+            $stdout
+        }
+        if ($stderr) {
+            foreach ($errLine in $stderr) {
+                Write-Error $errLine
             }
         }
     }
