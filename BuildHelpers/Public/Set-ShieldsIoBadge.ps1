@@ -81,7 +81,11 @@ function Set-ShieldsIoBadge {
         if ($PSCmdlet.ShouldProcess($Path))
         {
             $ReadmeContent = (Get-Content $Path)
-            $ReadmeContent = $ReadmeContent -replace "!\[$($Subject)\].+\)", "![$($Subject)](https://img.shields.io/badge/$Subject-$Status$Percent-$Color.svg)"
+            $Pattern = "!\[$($Subject)\].+?\)"
+            $String = "![$($Subject)](https://img.shields.io/badge/$Subject-$Status$Percent-$Color.svg)"
+            $ReadmeContent = $ReadmeContent | ForEach-Object { 
+                if ( ([regex]::Matches($_, $Pattern).success) ) { $_ -replace $Pattern, $String } else { $_ } 
+            }
             $ReadmeContent | Set-Content -Path $Path
         }
     }
