@@ -123,7 +123,7 @@ function Set-BuildEnvironment {
             Write-Verbose "storing [$prefixedVar] with value '$($BuildHelpersVariables[$VarName])'."
             $Output = New-Item -Path Env:\ -Name $prefixedVar -Value $BuildHelpersVariables[$VarName] -Force:$Force
             if ("Azure Pipelines" -eq $BuildHelpersVariables["BuildSystem"]) {
-                Set-AzurePipelinesVariable -Name $prefixedVar -Value $BuildHelpersVariables[$VarName]
+                Set-AzurePipelinesVariable -Name $prefixedVar -Value "$($BuildHelpersVariables[$VarName])"
             }
             if($Passthru)
             {

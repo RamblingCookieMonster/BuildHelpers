@@ -93,21 +93,17 @@ function Get-ProjectName
             }
             $result = $SourceManifests.BaseName
         }
-        #PSD1 in root of project - ick, but happens.
+        #PSD1 in root of project
         elseif( Test-Path "$ExpectedPath.psd1" )
         {
             $result = $CurrentFolder
         }
-        #PSD1 in root of project but name doesn't match
-        #very ick or just an icky time in Azure Pipelines
-        elseif ( $PSDs = Get-ChildItem -Path $Path "*.psd1" )
+        #A single PSD1 in root of project but name doesn't match (maybe because of Azure pipeline's /s folders)
+        elseif ( ($PSDs = Get-ChildItem -Path $Path "*.psd1").Count -eq 1 )
         {
-            if ($PSDs.count -gt 1) {
-                Write-Warning "Found more than one project manifest in the root folder"
-            }
             $result = $PSDs.BaseName
         }
-        #Last ditch, are you in Azure Pipelines or another CI that checks into a folder unrelated to the project?
+        #If you are in Azure Pipelines or another CI that checks into a folder unrelated to the project, maybe we should try this earlier?
         #let's try some git
         elseif ( $WeCanGit ) {
             $result = (Invoke-Git -Path $Path -GitPath $GitPath -Arguments "remote get-url origin").Split('/')[-1] -replace "\.git",""
