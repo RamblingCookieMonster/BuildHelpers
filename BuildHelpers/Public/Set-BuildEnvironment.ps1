@@ -118,7 +118,7 @@ function Set-BuildEnvironment {
     $BuildHelpersVariables = Get-BuildEnvironment @GBEParams
     foreach ($VarName in $BuildHelpersVariables.Keys) {
         if($null -ne $BuildHelpersVariables[$VarName]) {
-            $prefixedVar = "$VariableNamePrefix$VarName"
+            $prefixedVar = "$VariableNamePrefix$VarName".ToUpperInvariant()
 
             Write-Verbose "storing [$prefixedVar] with value '$($BuildHelpersVariables[$VarName])'."
             $Output = New-Item -Path Env:\ -Name $prefixedVar -Value $BuildHelpersVariables[$VarName] -Force:$Force
