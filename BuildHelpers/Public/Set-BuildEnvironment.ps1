@@ -38,6 +38,22 @@ function Set-BuildEnvironment {
             -BuildOutput 'C:\Build'
             -BuildOutput 'C:\Builds\$ProjectName'
 
+    .PARAMETER CustomVariables
+        Specify a hashtable containing one or more additional, custom variables that are to be created when
+        setting up the build environment. The hashtable key should be the name of the variable to be created.
+        It is not necessary to add the variable prefix--that will be added according to the value of the
+        VariableNamePrefix parameter. The value may include variables produced in this same call. Only include
+        the variable, not ENV or the prefix. Use a literal $.
+
+        Examples:
+
+            -CustomVariables @{ MyCustomVariable = '$ProjectPath\CustomFolder' }
+            -CustomVariables @{ Variable1 = 'foo'; Variable2 = 'bar' }
+            -CustomVariables @{
+                Variable1 = 'foo'
+                Variable2 = 'bar'
+            }
+
     .PARAMETER Passthru
         If specified, include output of the build variables we create
 
@@ -93,6 +109,9 @@ function Set-BuildEnvironment {
 
         [string]$BuildOutput = '$ProjectPath\BuildOutput',
 
+        [hashtable]
+        $CustomVariables = @{},
+
         [switch]
         $Force,
 
@@ -129,6 +148,28 @@ function Set-BuildEnvironment {
             {
                 $Output
             }
+        }
+    }
+    foreach ($VarName in $CustomVariables.Keys) {
+        $PrefixedCustomVarName = "${VariableNamePrefix}${VarName}".ToUpperInvariant()
+        $PrefixedCustomVarValue = $CustomVariables[$VarName]
+
+        $CustomVarsNames = $CustomVariables.Keys | Where-Object { $_ -ine $VarName }
+        foreach ($CustomVarName in $CustomVarsNames) {
+            $PrefixedCustomVarValue = $PrefixedCustomVarValue -replace "\`$$CustomVarName", $CustomVariables[$CustomVarName]
+        }
+
+        foreach($BhVarName in $BuildHelpersVariables.keys){
+            $PrefixedCustomVarValue = $PrefixedCustomvarValue -replace "\`$$BhVarName", $BuildHelpersVariables[$BhVarName]
+        }
+
+        Write-Verbose "Storing [$PrefixedCustomVarName] with value '$PrefixedCustomVarValue'."
+        $Output = New-Item -Path Env:\ -Name $PrefixedCustomVarName -Value $PrefixedCustomVarValue -Force:$Force
+        if ("Azure Pipelines" -eq $BuildHelpersVariables['BuildSystem']) {
+            Set-AzurePipelinesVariable -Name $PrefixedCustomVarName -Value $PrefixedCustomVarValue
+        }
+        if ($PassThru) {
+            $Output
         }
     }
     if($VariableNamePrefix -eq 'BH' -and $BuildHelpersVariables.ModulePath)
